@@ -34,7 +34,7 @@ npm run dev
 ```
 Server on http://localhost:3001, UI on http://localhost:5173 (Vite picks the next free port if 5173 is taken).
 
-Changing `PORT` in `.env` moves only the server. The UI proxies `/api` to `http://localhost:3001` (hardcoded in `client/vite.config.ts`), so change that target too or the UI will talk to whatever is on 3001. Changing the Postgres host port means editing both `docker-compose.yml` and the port in `DATABASE_URL`.
+`PORT` in `.env` sets the server port and the UI proxy follows it. Changing the Postgres host port means editing both `docker-compose.yml` and the port in `DATABASE_URL`.
 
 Smoke test the API (mock provider returns a canned answer plus real tool evidence):
 ```bash

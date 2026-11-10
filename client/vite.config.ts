@@ -1,7 +1,11 @@
 import react from "@vitejs/plugin-react";
-import { defineConfig } from "vite";
+import { defineConfig, loadEnv } from "vite";
 
-export default defineConfig({
-  plugins: [react()],
-  server: { port: 5173, proxy: { "/api": "http://localhost:3001" } },
+// The API proxy follows PORT from the repo-root .env (or the shell), default 3001.
+export default defineConfig(({ mode }) => {
+  const env = { ...loadEnv(mode, "..", ""), ...process.env };
+  return {
+    plugins: [react()],
+    server: { port: 5173, proxy: { "/api": `http://localhost:${env.PORT ?? 3001}` } },
+  };
 });

@@ -4,7 +4,7 @@ import { describe, expect, it } from "vitest";
 import { getLiveAirportStatus, NAS_STATUS_URL, parseNasStatusXml, summarizeAirport } from "./liveStatus.js";
 
 // Real sample saved from the FAA API (read-only). No network is used in these tests.
-const sample = readFileSync(fileURLToPath(new URL("../../../data/raw/nas/airport-status-information.xml", import.meta.url)), "utf8");
+const sample = readFileSync(fileURLToPath(new URL("./fixtures/airport-status-information.xml", import.meta.url)), "utf8");
 
 // SYNTHETIC fixture (not a saved FAA response) for categories absent from the saved sample.
 // Shapes follow the FAA AirportStatus DTD as understood; verify against a live response when one appears.
