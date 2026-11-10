@@ -32,7 +32,7 @@ Open http://localhost:5173.
 Set `LLM_PROVIDER` in `.env`:
 
 - `mock` (default): no key needed. Emits a fake `rankAirports` tool call, then a fake answer.
-- `groq`: set `GROQ_API_KEY`. Uses the OpenAI SDK against `LLM_BASE_URL` with `LLM_MODEL`; on error retries once with `LLM_FALLBACK_MODEL`.
+- `groq`: set `GROQ_API_KEY`. Uses the OpenAI SDK against `LLM_BASE_URL` with `LLM_MODEL`. There is no fallback model: a Groq error is shown to the user as-is.
 
 Restart `npm run dev` after changing `.env`. `.env` is git-ignored; never commit it.
 

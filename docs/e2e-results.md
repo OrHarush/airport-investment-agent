@@ -151,3 +151,7 @@ Tool/infra bug found by the E2E: `getRouteMix`'s schema (`cutoffMi: positive()`)
 - **Q2 headline.** The model says LAX is "more congested" overall although departure delayed-15+ is tied (19.96% vs 19.98%); it says so in the same answer, so I counted it as a pass.
 - **Number check is lexical.** It proves each number exists somewhere in the tool output, not that it is attached to the right airport/metric. I read each answer against the tool output for the expected values.
 - The brief referenced `claude/decisions.md` and `FDE Exam 2.pdf`; neither exists in the repo, so I worked from the brief only.
+
+## Re-run with compact tool payloads (Session H)
+The model now receives `compactForModel(...)` output (`server/src/tools/compact.ts`); the UI still gets the full result. Tool results sent to the model (tokens estimated as chars/4): rankAirports (16 airports) 7,400 -> 1,986; rankAirports (New England) 3,474 -> 1,328; getUnmetDemand 3,487 -> 1,708; compareAirports 1,787 -> 1,207; getAirportProfile 1,698 -> 1,235; getRouteMix 1,555 -> 777.
+Re-run of all four questions with a 10 s gap (instead of 70 s), no fallback model: **Q1 PASS, Q2 PASS, Q3 PASS, Q4 PASS**, with no ungrounded numbers, methodology issues, missing caveats or style issues.

@@ -21,6 +21,11 @@ const DROP_KEYS = new Set([
   "unmetByMonth",
   "monthlyAirportLevel",
   "byYear",
+  "displayed",
+  "baselineOrder",
+  "weightsVersion",
+  "scope",
+  "scenariosChangingTop3Set",
   "topCargoRoutes",
   "configuredWeight",
   "appliedWeight",
@@ -68,7 +73,7 @@ function slim(v: unknown, key = ""): unknown {
 function slimRanking(data: any): any {
   const rows = (data.ranking ?? []).map((r: any) => ({
     rankInScope: r.rankInScope,
-    rankOverall: r.rankOverall,
+    ...(r.rankOverall !== r.rankInScope ? { rankOverall: r.rankOverall } : {}), // omitted when identical to rankInScope
     airport: r.airport,
     total: r.total,
     pax12m: r.pax12m,
@@ -83,7 +88,7 @@ function slimRanking(data: any): any {
     ),
   }));
   const { ranking: _r, ...rest } = data;
-  return { ...slim(rest), ranking: rows };
+  return { ...(slim(rest) as object), ranking: rows };
 }
 
 /** Flags de-duplicated by (code, airport-less message); airports listed once. Detail text dropped. */

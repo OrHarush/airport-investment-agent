@@ -9,19 +9,17 @@ export class GroqProvider implements LLMProvider {
     apiKey: string,
     baseURL: string,
     private model: string,
-    private fallbackModel?: string,
   ) {
     if (!apiKey) throw new Error("GROQ_API_KEY is not set");
     this.client = new OpenAI({ apiKey, baseURL });
   }
 
+  /** No fallback model: on a provider error the real message is thrown and shown to the user. */
   async chat(messages: LLMMessage[], tools: ToolSpec[]): Promise<LLMResponse> {
     try {
       return await this.call(this.model, messages, tools);
     } catch (err) {
-      if (!this.fallbackModel) throw err;
-      console.warn(`[llm] ${this.model} failed (${(err as Error).message}); falling back to ${this.fallbackModel}`);
-      return this.call(this.fallbackModel, messages, tools);
+      throw new Error(describeGroqError(err));
     }
   }
 
@@ -67,4 +65,11 @@ function toOpenAI(m: LLMMessage): OpenAI.Chat.ChatCompletionMessageParam {
     default:
       return { role: m.role, content: m.content };
   }
+}
+
+/** "Groq 413: Request too large ..." style message from an OpenAI-SDK error; other errors keep their message. */
+export function describeGroqError(err: unknown): string {
+  const e = err as { status?: number; message?: string; error?: { message?: string } };
+  const msg = e?.error?.message ?? e?.message ?? String(err);
+  return `Groq error${e?.status ? ` ${e.status}` : ""}: ${msg.replace(/^\d{3}\s+/, "")}`;
 }

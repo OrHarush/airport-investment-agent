@@ -177,7 +177,7 @@ async function main() {
     let res: any;
     try {
       // Groq free tier: 8000 tokens/min. Space the runs and retry once after a 413/429-induced failure.
-      if (results.length) await new Promise((r) => setTimeout(r, 70_000));
+      if (results.length) await new Promise((r) => setTimeout(r, Number(process.env.GAP_MS ?? 10_000)));
       try {
         res = await post("/api/chat", { message: c.question });
       } catch {

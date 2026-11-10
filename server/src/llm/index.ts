@@ -5,7 +5,7 @@ import type { LLMProvider } from "./types.js";
 
 export function createProvider(): LLMProvider {
   if (config.provider === "groq") {
-    return new GroqProvider(config.apiKey, config.baseURL, config.model, config.fallbackModel);
+    return new GroqProvider(config.apiKey, config.baseURL, config.model);
   }
   return new MockProvider();
 }
