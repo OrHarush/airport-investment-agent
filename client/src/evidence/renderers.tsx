@@ -198,36 +198,49 @@ function RouteMix({ ev }: P) {
 
 function Unmet({ ev }: P) {
   const x = d(ev);
-  // Headline is the tool's own airport-level value, shown as returned.
-  const headline = at(x, "airportLevel.unmetPassengers");
+  // Primary number: the tool's route-month sum of unmet seats. The annual airport-level figure is secondary
+  // (averaging over routes and months hides peaks, so it can be 0). Tool values only, no client math.
+  const headline = at(x, "headline.unmetSeats");
+  const grain: string | undefined = at(x, "headline.grain");
+  const annual = at(x, "airportLevel.unmetPassengers");
   const lf = at(x, "airportLevel.loadFactor");
   const threshold = x.threshold;
   const monthlySum = x.monthlySumUnmetPassengers;
-  const routes: Obj[] = at(x, "routesAtOrAboveThreshold.top") ?? [];
+  const routes: Obj[] = x.topRoutesByUnmetSeats ?? [];
+  const peaks: Obj[] = x.peakMonths ?? [];
   const [all, setAll] = useState(false);
-  const shown = all ? routes : routes.slice(0, 5);
+  const shown = all ? routes : routes.slice(0, 6);
   const signals: Obj[] = x.signals ?? [];
   const supporting = signals.filter((s) => s.supportsConstrainedSupply);
   return (
-    <Card ev={ev} title={`Unmet demand · ${x.airport ?? ""}`} meta={[["Window", x.window ?? "–"], ["Threshold", `Load factor above ${fmtRatio(threshold, 0)}`], ["Formula", at(x, "airportLevel.formula") ?? "–"]]}>
+    <Card ev={ev} title={`Unmet demand · ${x.airport ?? ""}`} meta={[["Window", x.window ?? "–"], ["Threshold", `Load factor above ${fmtRatio(threshold, 0)}`], ["Grain", grain ?? "–"], ["Formula", at(x, "headline.formula") ?? "–"]]}>
       <div className="big">{fmt(headline)}</div>
-      <p className="big-cap">unmet passengers (proxy) at the airport level, from demand above {fmtRatio(threshold, 0)} full.</p>
-      <p className="big-sub">Annual load factor {fmtRatio(lf)}.</p>
-      {isNum(monthlySum) && (
-        <p className="big-sub">
-          Month-by-month sum: {fmt(monthlySum)}.{typeof x.monthlyNote === "string" ? ` ${x.monthlyNote}` : ""}
-        </p>
-      )}
+      <p className="big-cap">unmet seats (proxy), summed over route-months with load factor above {fmtRatio(threshold, 0)}. Not observed turned-away demand.</p>
+      <p className="big-sub">
+        Annual airport-level figure (secondary): {fmt(annual)} unmet passengers at {fmtRatio(lf)} load factor.
+        {isNum(monthlySum) ? ` Month-by-month airport-level sum: ${fmt(monthlySum)}.` : ""}
+      </p>
       {routes.length > 0 && (
         <>
-          <div className="list-title">Busiest routes ({at(x, "routesAtOrAboveThreshold.count") ?? routes.length} above threshold)</div>
+          <div className="list-title">Top routes by unmet seats</div>
           {shown.map((r) => (
             <div className="lrow" key={r.dest}>
-              <span>{r.dest}<small>{fmt(r.distanceMi)} mi · {fmt(r.departures)} departures</small></span>
-              <span className="v">{fmtRatio(r.loadFactor)}<small>{fmtCompact(r.unmetPassengers)} unmet</small></span>
+              <span>{r.dest}<small>{fmt(r.distanceMi)} mi · {fmt(r.monthsAboveThreshold)} months above threshold</small></span>
+              <span className="v">{fmt(r.unmetSeats)}<small>{r.peakMonth ? `peak ${r.peakMonth.period} · LF ${fmtRatio(r.peakMonth.loadFactor)}` : "unmet seats"}</small></span>
             </div>
           ))}
-          {routes.length > 5 && <button className="more" onClick={() => setAll((v) => !v)}>{all ? "Show fewer" : `Show all ${routes.length}`}</button>}
+          {routes.length > 6 && <button className="more" onClick={() => setAll((v) => !v)}>{all ? "Show fewer" : `Show all ${routes.length}`}</button>}
+        </>
+      )}
+      {peaks.length > 0 && (
+        <>
+          <div className="list-title">Peak months</div>
+          {peaks.map((m) => (
+            <div className="lrow" key={m.period}>
+              <span>{m.period}<small>{fmt(m.routesAboveThreshold)} of {fmt(m.routesInMonth)} routes above threshold{m.topRoute ? ` · top ${m.topRoute}` : ""}</small></span>
+              <span className="v">{fmt(m.unmetSeats)}<small>unmet seats</small></span>
+            </div>
+          ))}
         </>
       )}
       {supporting.length > 0 && (
