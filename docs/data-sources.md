@@ -79,7 +79,7 @@ All raw files are in `data/raw/<source>/` (about 340 MB total, mostly On-Time).
 - **Gotchas:**
   - `locid` in the data sheets has trailing spaces (for example `'BOS '`). Strip it before joining.
   - Fiscal year, not calendar year.
-  - Total enplanements = `aac + aat + commuter`. The 2019 baseline is present for all 16 airports.
+  - Total enplanements = `aac + aat + commuter + us_flag + frgn_flag`. `us_flag` and `frgn_flag` are international enplanements and are **not** included in the first three columns; leaving them out understates LAX, SFO and BOS by 17–31 % (corrected 2026-11-10 after reconciling with T-100, which matches the 5-column total within a few percent). The 2019 baseline is present for all 16 airports.
   - There is no capacity (gates, terminal size) in the TAF.
   - Enplanements are forecast. T-100 and the TAF will not match exactly.
 
