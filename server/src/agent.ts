@@ -21,8 +21,10 @@ export async function runAgent(provider: LLMProvider, history: LLMMessage[]): Pr
   const messages: LLMMessage[] = [{ role: "system", content: SYSTEM_PROMPT }, ...history];
   const evidence: EvidenceItem[] = [];
   const toolCalls: ToolCallRecord[] = [];
+  const toolTokens: { tool: string; tokens: number }[] = [];
   let usage: LlmUsage | null = null;
   let rateLimit: LlmRateLimit | null = null;
+  const withTools = (u: LlmUsage | null): LlmUsage | null => (u ? { ...u, toolTokens } : null);
   const track = (res: LLMResponse) => {
     if (res.usage) {
       usage = {
@@ -39,7 +41,7 @@ export async function runAgent(provider: LLMProvider, history: LLMMessage[]): Pr
     const res = await provider.chat(messages, toolSpecs);
     track(res);
     if (!res.toolCalls.length) {
-      return { reply: res.content ?? "", evidence, toolCalls, usage, rateLimit };
+      return { reply: res.content ?? "", evidence, toolCalls, usage: withTools(usage), rateLimit };
     }
     messages.push({ role: "assistant", content: res.content, toolCalls: res.toolCalls });
     for (const call of res.toolCalls) {
@@ -48,6 +50,7 @@ export async function runAgent(provider: LLMProvider, history: LLMMessage[]): Pr
       if (out.ok) evidence.push({ tool: call.name, ...out.result });
       // UI evidence keeps the full result; the model gets the compact copy (Groq 8k tokens/min).
       const content = JSON.stringify(out.ok ? compactForModel(call.name, out.result) : { error: out.error });
+      toolTokens.push({ tool: call.name, tokens: estimateTokens(content) });
       console.log(`[tool] ${call.name}: ~${estimateTokens(content)} tokens to model${out.ok ? ` (full result ~${estimateTokens(out.result)})` : " (error)"}`);
       messages.push({ role: "tool", toolCallId: call.id, content });
     }
@@ -61,5 +64,5 @@ export async function runAgent(provider: LLMProvider, history: LLMMessage[]): Pr
   });
   const final = await provider.chat(messages, []);
   track(final);
-  return { reply: final.content ?? "I don't have enough data to answer.", evidence, toolCalls, usage, rateLimit };
+  return { reply: final.content ?? "I don't have enough data to answer.", evidence, toolCalls, usage: withTools(usage), rateLimit };
 }

@@ -47,6 +47,7 @@ a:hover { text-decoration-color: var(--accent); }
 .tb-title { font-size: 14px; font-weight: 500; color: var(--ink-2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding-left: 8px; }
 .content { flex: 1; min-height: 0; display: grid; grid-template-columns: minmax(0, 1fr) 8px clamp(320px, var(--ev-w, 440px), 60%); }
 .content.ev-closed { grid-template-columns: minmax(0, 1fr); }
+.card-head .icon-btn { margin-left: auto; }
 .icon-btn { width: 32px; height: 32px; flex: none; border-radius: 8px; display: inline-grid; place-items: center; color: var(--ink-2); transition: background 0.15s, color 0.15s; }
 .icon-btn:hover:not(:disabled) { background: var(--panel); color: var(--ink); }
 .icon-btn svg { font-size: 19px; }
@@ -297,8 +298,7 @@ body.resizing { cursor: col-resize; user-select: none; }
 .icon-btn:hover { color: var(--ink); background: var(--bg); }
 .icon-btn svg { font-size: 17px; }
 
-.usage { display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 4px; font-size: 11.5px; color: var(--ink-3); font-variant-numeric: tabular-nums; flex-wrap: wrap; }
-.usage-bar { width: 72px; height: 3px; border-radius: 2px; background: var(--line, rgba(128,128,128,.25)); overflow: hidden; }
+.usage-bar { display: block; width: 100%; margin: 6px 0 4px; height: 3px; border-radius: 2px; background: var(--line, rgba(128,128,128,.25)); overflow: hidden; }
 .usage-bar i { display: block; height: 100%; background: var(--ink-3); border-radius: 2px; transition: width .3s var(--ease); }
 .usage-bar.low i { background: var(--amber-ink); }
 
@@ -327,3 +327,15 @@ body.resizing { cursor: col-resize; user-select: none; }
   .rank-vol small { display: none; }
   .cmp { grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr) minmax(0, 1fr); }
 }
+
+.gauge { position: relative; flex: none; align-self: center; }
+.gauge-btn { width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; color: var(--ink-3); }
+.gauge-btn:hover { background: var(--panel); }
+.gauge-track { fill: none; stroke: var(--line-strong); stroke-width: 3; }
+.gauge-fill { fill: none; stroke: var(--accent); stroke-width: 3; stroke-linecap: round; transition: stroke-dashoffset .4s var(--ease); }
+.gauge-btn.low .gauge-fill { stroke: var(--amber-ink); }
+.gauge-pop { position: absolute; right: -4px; bottom: 42px; width: 268px; padding: 12px 14px; background: var(--surface); border: 1px solid var(--line-strong); border-radius: 12px; box-shadow: 0 12px 32px -12px rgba(33, 31, 28, 0.28); font-size: 12.5px; color: var(--ink-2); font-variant-numeric: tabular-nums; z-index: 20; }
+.gp-row { display: flex; justify-content: space-between; gap: 12px; padding: 2px 0; }
+.gp-row b { color: var(--ink); font-weight: 600; }
+.gp-sub { color: var(--ink-3); font-size: 12px; margin-bottom: 4px; }
+.gp-h { margin-top: 10px; padding-top: 8px; border-top: 1px solid var(--line); font-size: 11px; letter-spacing: .04em; text-transform: uppercase; color: var(--ink-3); }

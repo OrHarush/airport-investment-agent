@@ -3,6 +3,7 @@ import { z } from "zod";
 import type { ChatMessageDTO } from "@airport/shared";
 import { runAgent } from "../agent.js";
 import { prisma } from "../db.js";
+import { getLlmStatus, recordLlmStatus } from "../llm/status.js";
 import type { LLMMessage, LLMProvider } from "../llm/types.js";
 
 const TITLE_MAX = 50;
@@ -96,6 +97,10 @@ export function conversationRouter(provider: LLMProvider) {
     }
   });
 
+  r.get("/llm-usage", (_req, res) => {
+    res.json(getLlmStatus());
+  });
+
   r.post("/chat", async (req, res, next) => {
     try {
       const { conversationId, message } = z
@@ -117,6 +122,7 @@ export function conversationRouter(provider: LLMProvider) {
         throw e;
       }
       const { reply, evidence, toolCalls, usage, rateLimit } = result;
+      recordLlmStatus(usage, rateLimit);
       const assistant = await prisma.message.create({
         data: { conversationId: conv.id, role: "assistant", content: reply, toolCalls: toolCalls as any, evidence: evidence as any },
       });

@@ -1,9 +1,12 @@
 import AddRounded from "@mui/icons-material/AddRounded";
 import ViewSidebarOutlined from "@mui/icons-material/ViewSidebarOutlined";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import type { ChatMessageDTO, EvidenceItem, LlmRateLimit, LlmUsage } from "@airport/shared";
+import type { ChatMessageDTO, EvidenceItem } from "@airport/shared";
+import type { LlmInfo } from "./components/UsageGauge";
 import {
   ApiError,
+  friendlyError,
+  getLlmUsage,
   createConversation,
   deleteConversation,
   getConversation,
@@ -36,7 +39,7 @@ export default function App() {
   const [listError, setListError] = useState(false);
   const [reloadTick, setReloadTick] = useState(0);
   const [pending, setPending] = useState<Record<string, boolean>>({});
-  const [llm, setLlm] = useState<{ usage: LlmUsage | null; rateLimit: LlmRateLimit | null } | null>(null);
+  const [llm, setLlm] = useState<LlmInfo | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const lastText = useRef<Record<string, string>>({});
   const skipLoad = useRef<string | null>(null); // conversation we just created locally: don't refetch it
@@ -69,6 +72,11 @@ export default function App() {
     refreshList();
   }, [refreshList]);
 
+  // Last usage the server remembers, so the gauge survives a page refresh.
+  useEffect(() => {
+    getLlmUsage().then((s) => s && setLlm((p) => p ?? s)).catch(() => {});
+  }, []);
+
   // Load the conversation named by the URL.
   useEffect(() => {
     setOpenError(null);
@@ -94,7 +102,7 @@ export default function App() {
       .catch((e) => {
         if (!live) return;
         if (e instanceof ApiError && e.status === 404) go(null, true); // deleted or unknown id
-        else setOpenError("Couldn’t load this conversation");
+        else setOpenError("Couldn’t load this conversation.");
       })
       .finally(() => live && setOpening(false));
     return () => {
@@ -114,7 +122,7 @@ export default function App() {
         go(id);
       }
     } catch (e) {
-      setErrors((x) => ({ ...x, "": (e as Error).message }));
+      setErrors((x) => ({ ...x, "": friendlyError(e) }));
       return;
     }
     const cid = id;
@@ -124,7 +132,7 @@ export default function App() {
     if (appendUser) setMessages((m) => [...m, { id: `u-${Date.now()}`, role: "user", content: text, createdAt: new Date().toISOString() }]);
     try {
       const res = await sendChat(cid, text);
-      setLlm({ usage: res.usage, rateLimit: res.rateLimit });
+      setLlm((p) => ({ usage: res.usage, rateLimit: res.rateLimit, receivedAt: Date.now(), sessionTokens: (p?.sessionTokens ?? 0) + (res.usage?.totalTokens ?? 0) }));
       setConversations((l) => [res.conversation, ...l.filter((c) => c.id !== cid)]);
       if (activeRef.current === cid) {
         setMessages((m) => [...m, res.message]);
@@ -134,7 +142,7 @@ export default function App() {
       if (e instanceof ApiError && e.status === 404) {
         refreshList();
         if (activeRef.current === cid) go(null, true);
-      } else setErrors((x) => ({ ...x, [cid]: (e as Error).message }));
+      } else setErrors((x) => ({ ...x, [cid]: friendlyError(e) }));
     } finally {
       setPending((p) => ({ ...p, [cid]: false }));
     }

@@ -2,7 +2,8 @@ import ArrowUpwardRounded from "@mui/icons-material/ArrowUpwardRounded";
 import { useEffect, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import type { ChatMessageDTO, LlmRateLimit, LlmUsage } from "@airport/shared";
+import type { ChatMessageDTO } from "@airport/shared";
+import UsageGauge, { type LlmInfo } from "./UsageGauge";
 
 export const STARTERS = [
   "Which airports in New England are strong candidates for terminal expansion?",
@@ -20,32 +21,7 @@ interface Props {
   selectedId: string | null;
   opening?: boolean;
   onSelect: (id: string) => void;
-  llm?: { usage: LlmUsage | null; rateLimit: LlmRateLimit | null } | null;
-}
-
-const tok = (n: number) => (n >= 10_000 ? `${Math.round(n / 1000)}k` : n >= 1000 ? `${(n / 1000).toFixed(1).replace(/\.0$/, "")}k` : String(n));
-const secs = (s: number) => (s >= 60 ? `${Math.floor(s / 60)}m ${Math.round(s % 60)}s` : `${Math.round(s)}s`);
-
-/** Quiet usage line under the composer. Values come from the server (provider usage + x-ratelimit headers); hidden for the mock provider. */
-function UsageFooter({ llm }: { llm?: Props["llm"] }) {
-  const u = llm?.usage, r = llm?.rateLimit;
-  if (!u && !r) return null;
-  const hasWindow = r && r.tokensLimit !== null && r.tokensRemaining !== null;
-  const pct = hasWindow ? Math.max(0, Math.min(100, (r.tokensRemaining! / r.tokensLimit!) * 100)) : null;
-  return (
-    <div className="usage" aria-label="LLM usage">
-      <span>
-        {u ? `This answer: ${tok(u.totalTokens)} tokens${u.rounds > 1 ? ` · ${u.rounds} rounds` : ""}` : ""}
-        {u && hasWindow ? " · " : ""}
-        {hasWindow ? `Groq tokens/min: ${tok(r.tokensRemaining!)} of ${tok(r.tokensLimit!)} left${r.resetTokens !== null ? `, resets in ${secs(r.resetTokens)}` : ""}` : ""}
-      </span>
-      {pct !== null && (
-        <span className={`usage-bar ${pct < 25 ? "low" : ""}`} role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(pct)}>
-          <i style={{ width: `${pct}%` }} />
-        </span>
-      )}
-    </div>
-  );
+  llm?: LlmInfo | null;
 }
 
 export default function Chat({ messages, loading, error, onSend, onRetry, selectedId, onSelect, opening, llm }: Props) {
@@ -97,7 +73,6 @@ export default function Chat({ messages, loading, error, onSend, onRetry, select
                 {m.evidence && m.evidence.length > 0 && (
                   <button className={`ev-link ${selectedId === m.id ? "on" : ""}`} aria-pressed={selectedId === m.id} onClick={() => onSelect(m.id)}>
                     {selectedId === m.id ? "Showing evidence" : "Show evidence"}
-                    <span>{m.evidence.map((e) => e.tool).join(", ")}</span>
                   </button>
                 )}
               </div>
@@ -111,7 +86,7 @@ export default function Chat({ messages, loading, error, onSend, onRetry, select
           )}
           {error && !loading && (
             <div className="error" role="alert">
-              <span>{error}. Nothing was lost.</span>
+              <span>{error}</span>
               <button onClick={onRetry}>Try again</button>
             </div>
           )}
@@ -135,12 +110,12 @@ export default function Chat({ messages, loading, error, onSend, onRetry, select
               }
             }}
           />
+          <UsageGauge llm={llm} />
           <button className="send" onClick={submit} disabled={loading || !text.trim()} aria-label="Send">
             <ArrowUpwardRounded />
           </button>
         </div>
         <div className="hint">Enter to send · Shift+Enter for a new line</div>
-        <UsageFooter llm={llm} />
       </div>
     </main>
   );

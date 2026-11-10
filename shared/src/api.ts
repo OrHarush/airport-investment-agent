@@ -27,6 +27,8 @@ export interface LlmUsage {
   completionTokens: number;
   totalTokens: number;
   rounds: number;
+  /** Estimated tokens of each tool result sent to the model (compact form), in call order. */
+  toolTokens?: { tool: string; tokens: number }[];
 }
 /** Provider rate-limit window as reported by the provider's x-ratelimit-* headers (Groq: per minute). */
 export interface LlmRateLimit {
@@ -42,3 +44,12 @@ export interface LlmRateLimit {
 export interface ChatRequest { message: string }
 export interface ChatResponse { reply: string; evidence: EvidenceItem[]; usage: LlmUsage | null; rateLimit: LlmRateLimit | null }
 export interface ConversationResponse { messages: ChatMessageDTO[] }
+
+/** Why a request failed, without provider codes or raw messages. */
+export type ErrorKind = "rate_limit" | "too_large" | "auth" | "model" | "unavailable" | "server";
+export interface ApiErrorBody {
+  error: string;
+  kind?: ErrorKind;
+  /** ISO time when a rate limit lifts (rate_limit only). */
+  retryAt?: string;
+}

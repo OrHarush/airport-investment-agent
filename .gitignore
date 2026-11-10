@@ -7,3 +7,6 @@ dist
 data/raw/
 .idea
 !data/clean/
+docs/e2e-run.json
+docs/e2e-q4.json
+docs/.q4.out

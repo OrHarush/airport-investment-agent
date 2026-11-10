@@ -69,7 +69,6 @@ export default function Card({ ev, title, meta, children }: { ev: EvidenceItem; 
     <section className="card">
       <div className="card-head">
         <h3>{title}</h3>
-        <code>{ev.tool}</code>
         <button className="icon-btn" onClick={copyJson} title={copied ? "Copied" : "Copy JSON"} aria-label="Copy JSON">
           {copied ? <CheckRounded /> : <ContentCopyRounded />}
         </button>
