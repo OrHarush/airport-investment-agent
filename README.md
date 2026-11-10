@@ -32,7 +32,12 @@ Edit `.env`:
 ```bash
 npm run dev
 ```
-Server on http://localhost:3001, UI on http://localhost:5173.
+Server on http://localhost:3001, UI on http://localhost:5173 (Vite picks the next free port if 5173 is taken).
+
+Smoke test the API (mock provider returns a canned answer plus real tool evidence):
+```bash
+curl -X POST localhost:3001/api/chat -H "content-type: application/json" -d '{"message":"Rank the New England airports for terminal-expansion investment."}'
+```
 
 ## Example questions
 1. Rank the New England airports for terminal-expansion investment.
