@@ -160,6 +160,14 @@ export function checkStyle(answer: string, id: string): string[] {
   if (codes) out.push(`flag codes printed: ${[...new Set(codes)].join(", ")}`);
   const ids = answer.match(/\b[a-z]+[A-Z][A-Za-z]+\(?\)?|`[^`]+`/g);
   if (ids) out.push(`tool/field names printed: ${[...new Set(ids)].join(", ")}`);
+  const prose = answer.split("\n").filter((l) => !/^\s*\|/.test(l)).join("\n");
+  const noBullets = prose.replace(/^\s*[-*]\s+/gm, "");
+  if (/[–—]|\s-\s|--+/.test(noBullets)) out.push("dash or separator used in prose");
+  if (/,\s*$/m.test(prose) || /:\s*$/.test(prose.trim()) || /\(\s*\)|\.\.\./.test(prose)) out.push("dangling punctuation");
+  if (id === "q1") {
+    const last = prose.trim().split("\n").filter((l) => l.trim()).pop() ?? "";
+    if (!/(BOS|Boston|BTV|Burlington)/.test(last) || !/(load factor|growth|congestion|fare|size)/i.test(last)) out.push("ranking answer does not end with a verdict naming the leader and its drivers");
+  }
   return out;
 }
 

@@ -41,7 +41,7 @@ export type ToolName = (typeof toolNames)[number];
 const iata = z.string().length(3).transform((s) => s.toUpperCase());
 
 export const rankAirportsInput = z.object({
-  airports: z.array(iata).min(1).max(16).optional().describe("Optional peer set (IATA codes). Default: all 16 in-scope airports."),
+  airports: z.array(iata).max(16).optional().describe("Optional IATA codes to display. Omit or leave empty for all 16 in-scope airports."),
   region: z.string().optional().describe("Optional filter: region group (New England, Southern California, Bay Area, Alaska) or US state code"),
 });
 export const compareAirportsInput = z.object({ a: iata, b: iata });

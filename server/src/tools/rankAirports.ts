@@ -9,7 +9,7 @@ import { cargoHeavy, engineFlags } from "./flags.js";
 
 /** Resolve an optional region filter (region group name or state code) and/or explicit airport list to IATA codes. Display filter only. */
 export async function resolveDisplaySet(input: { airports?: string[]; region?: string }): Promise<string[] | undefined> {
-  let codes = input.airports?.map((c) => c.toUpperCase());
+  let codes = input.airports?.length ? input.airports.map((c) => c.toUpperCase()) : undefined;
   if (input.region) {
     const r = input.region.trim();
     const rows = await prisma.airport.findMany({
