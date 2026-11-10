@@ -7,37 +7,26 @@ import {
   type ToolResult,
 } from "@airport/shared";
 import type { ToolSpec } from "../llm/types.js";
+import { compareAirports } from "./compareAirports.js";
+import { getAirportProfile } from "./getAirportProfile.js";
+import { getRouteMix } from "./getRouteMix.js";
+import { getUnmetDemand } from "./getUnmetDemand.js";
+import { getLiveAirportStatus } from "./liveStatus.js";
+import { rankAirports } from "./rankAirports.js";
 
 type Handler = (input: any) => Promise<ToolResult>;
 
-const stub = (data: unknown): ToolResult => ({
-  data,
-  sources: [{ name: "MOCK stub (no real data yet)", url: "https://example.com/mock", retrievedAt: new Date().toISOString() }],
-  assumptions: ["Stub tool: values are placeholders, not real analysis."],
-  flags: ["MOCK_DATA"],
-});
-
-/** Stubs. Replace with real implementations backed by the scoring engine / DB. */
 const handlers: Record<ToolName, Handler> = {
-  rankAirports: async (i) =>
-    stub({
-      ranking: ["XXX", "YYY", "ZZZ", "AAA", "BBB"].slice(0, i.limit).map((code, idx) => ({
-        rank: idx + 1,
-        airport: code,
-        score: +(0.82 - idx * 0.07).toFixed(2),
-      })),
-    }),
-  compareAirports: async (i) =>
-    stub({ airports: i.airports.map((a: string) => ({ airport: a, score: 0.5, growth: 0.1 })) }),
-  getAirportProfile: async (i) => stub({ airport: i.airport, passengers: 1_000_000, avgDelayMin: 12.3 }),
-  getRouteMix: async (i) =>
-    stub({ airport: i.airport, routes: [{ dest: "ATL", passengers: 120000 }, { dest: "ORD", passengers: 90000 }] }),
-  getUnmetDemand: async (i) => stub({ airport: i.airport, unmetDemandIndex: 0.37 }),
-  getLiveAirportStatus: async (i) => stub({ airport: i.airport, status: "normal", delayMin: 0 }),
+  rankAirports,
+  compareAirports,
+  getAirportProfile,
+  getRouteMix,
+  getUnmetDemand,
+  getLiveAirportStatus: (i) => getLiveAirportStatus(i),
 };
 
 export const toolSpecs: ToolSpec[] = toolNames.map((name) => {
-  const { $schema, ...parameters } = zodToJsonSchema(toolInputSchemas[name], { target: "openApi3" }) as any;
+  const { $schema, ...parameters } = zodToJsonSchema(toolInputSchemas[name], { target: "jsonSchema7" }) as any;
   return { name, description: toolDescriptions[name], parameters };
 });
 
