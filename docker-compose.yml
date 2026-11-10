@@ -1,0 +1,14 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: airport-pg
+    environment:
+      POSTGRES_USER: airport
+      POSTGRES_PASSWORD: airport
+      POSTGRES_DB: airport
+    ports:
+      - "5433:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+volumes:
+  pgdata:
