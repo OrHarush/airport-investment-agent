@@ -1,17 +1,10 @@
 import type { EvidenceItem, ToolCallRecord } from "@airport/shared";
 import { config } from "./config.js";
 import type { LLMMessage, LLMProvider } from "./llm/types.js";
+import { SYSTEM_PROMPT } from "./agent/systemPrompt.js";
 import { executeTool, toolSpecs } from "./tools/index.js";
 
-export const SYSTEM_PROMPT = `You are an Airport Investment Intelligence Agent that helps analysts rank and compare US airports for terminal-expansion investment.
-
-Rules:
-1. Never state a number, ranking, or fact about an airport that was not returned by a tool in this conversation. Call tools to get data.
-2. Cite sources: for every claim, mention the source name(s) from the tool result's "sources".
-3. State assumptions: include the tool results' "assumptions" and mention any "flags" that affect reliability.
-4. If the tools do not return the data needed, say "I don't have data" for that item. Do not guess or use outside knowledge for figures.
-5. If a tool returns an error, fix your arguments and retry, or explain the limitation.
-Be concise and decision-oriented.`;
+export { SYSTEM_PROMPT };
 
 export interface AgentResult {
   reply: string;
