@@ -5,3 +5,5 @@ dist
 .DS_Store
 
 data/raw/
+.idea
+!data/clean/

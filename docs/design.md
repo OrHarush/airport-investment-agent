@@ -13,7 +13,7 @@ flowchart LR
   E --> F[Chat UI<br/>+ evidence cards]
   D -. full tool result .-> F
 ```
-- ETL cleans the raw files into `data/clean/*.csv`; `npm run seed` loads them into Postgres.
+- ETL cleans the raw files into `data/clean/*.csv` (committed); `npm run seed` loads them into Postgres. In production the clean data would live in object storage and be rebuilt by the ETL on a schedule.
 - Six tools (`rankAirports`, `compareAirports`, `getAirportProfile`, `getRouteMix`, `getUnmetDemand`, `getLiveAirportStatus`) compute everything. Each returns data, sources, assumptions and flags.
 - The agent loop sends the question and tool specs to the LLM, runs the tool calls it asks for (zod-validated), and repeats.
 - The model sees a compacted tool result. The UI gets the full result and renders it as evidence cards beside the chat.
@@ -74,7 +74,7 @@ BTV wins on load factor, growth and fares; BOS wins on congestion and size. Full
 - Every number must appear in a tool result from the conversation; if no tool provides it, the model says so.
 - Methodology is only restated from the tool's methodology, normalization, weights and window fields.
 - Flags are structured (code, severity, message) and the model mentions only those that affect the conclusion.
-- The E2E runner checks that every number in an answer exists in a tool result or argument. All 4 questions pass (see [e2e-results.md](e2e-results.md)).
+- The E2E runner checks that every number in an answer exists in a tool result or argument. All 4 questions pass (see [e2e-results.md](e2e-results.md); project decisions and status: [handoff.md](handoff.md)).
 - The UI shows a quiet usage line (token usage and the Groq rate-limit meter) so a 413 is not a mystery.
 
 ## 7. Assumptions and uncertainty

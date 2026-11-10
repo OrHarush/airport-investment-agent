@@ -2,7 +2,7 @@
 
 A chat agent that helps analysts screen 16 US airports for terminal-expansion investment. An LLM chooses tools and explains results; all scores and numbers come from deterministic code over public BTS and FAA data, shown as evidence cards next to the chat.
 
-Design, scoring method, tradeoffs and limits: [docs/design.md](docs/design.md). Test results on the four example questions: [docs/e2e-results.md](docs/e2e-results.md).
+Design, scoring method, tradeoffs and limits: [docs/design.md](docs/design.md). Test results on the four example questions: [docs/e2e-results.md](docs/e2e-results.md). Decisions and status: [docs/handoff.md](docs/handoff.md).
 
 ## Prerequisites
 - Node 20+
@@ -18,6 +18,8 @@ npm run db:generate -w server     # prisma generate
 npm run db:migrate                # create tables
 npm run seed                      # load data/clean/*.csv into Postgres
 ```
+
+`data/clean/` (about 47 MB of CSV) is committed, so `npm run seed` works from a fresh clone. `python etl/clean/run_clean.py` rebuilds it from the public sources in `data/raw/` (git-ignored, about 340 MB; see [docs/data-sources.md](docs/data-sources.md)).
 
 Edit `.env`:
 - `LLM_PROVIDER=mock` (default, no key; canned tool call and answer) or `LLM_PROVIDER=groq`
@@ -57,7 +59,7 @@ cd server && npx tsx scripts/e2e.mts
 | `server/` | Express API, agent loop, LLM providers, tools, scoring, Prisma, seed |
 | `shared/` | Tool contract types and zod input schemas |
 | `etl/` | Python data profiling and cleaning (`data/raw` to `data/clean`) |
-| `data/` | `raw/` downloads (git-ignored) and `clean/` CSVs loaded by the seed |
+| `data/` | `raw/` downloads (git-ignored) and `clean/` CSVs (committed) loaded by the seed |
 | `docs/` | Design doc, data sources, data profile, E2E results |
 
 ## Known limits

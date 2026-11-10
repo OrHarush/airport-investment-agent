@@ -1,12 +1,17 @@
 {
   "name": "airport-investment-agent",
   "private": true,
-  "workspaces": ["shared", "server", "client"],
+  "workspaces": [
+    "shared",
+    "server",
+    "client"
+  ],
   "scripts": {
     "dev": "concurrently -n server,client -c blue,green \"npm run dev -w server\" \"npm run dev -w client\"",
     "db:up": "docker compose up -d",
     "db:migrate": "npm run db:migrate -w server",
-    "typecheck": "npm run typecheck -w shared && npm run typecheck -w server && npm run typecheck -w client"
+    "typecheck": "npm run typecheck -w shared && npm run typecheck -w server && npm run typecheck -w client",
+    "seed": "npm run seed -w server"
   },
   "devDependencies": {
     "concurrently": "^9.1.0",

@@ -146,7 +146,7 @@ Tool/infra bug found by the E2E: `getRouteMix`'s schema (`cutoffMi: positive()`)
 
 ## Still open
 - **Groq on-demand TPM limit (8000 tokens/min).** A `rankAirports` or `getUnmetDemand` tool result is about 6-7k tokens, so two such questions inside a minute return 413. The runner waits 70 s between questions. A real user doing back-to-back ranking questions will hit this. A slimmer `rankAirports` payload (or a paid Groq tier) would fix it; I did not change the tool output.
-- **Fallback model `llama-3.3-70b-versatile` does not exist for this Groq key** (404), so the fallback only masks the original error. `LLM_FALLBACK_MODEL` should be changed or removed.
+- **Fallback model removed (resolved).** `llama-3.3-70b-versatile` returned 404 for this Groq key and only masked the real error, so there is no fallback model any more; a Groq error is shown as-is.
 - **Driven through the API, not the browser.** The E2E calls the same `/api/chat` endpoint as the UI; I did not click through the React UI.
 - **Q2 headline.** The model says LAX is "more congested" overall although departure delayed-15+ is tied (19.96% vs 19.98%); it says so in the same answer, so I counted it as a pass.
 - **Number check is lexical.** It proves each number exists somewhere in the tool output, not that it is attached to the right airport/metric. I read each answer against the tool output for the expected values.

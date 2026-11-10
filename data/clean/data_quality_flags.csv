@@ -1,0 +1,32 @@
+source,table,airport,period,flag,severity,rows_affected,detail
+ourairports,airports,,,closed_runways_excluded,info,4,"Runways with closed=1 are excluded from open_runways/longest_open_runway_ft: BDL (1), LGB (2), SJC (1)"
+t100,route_stats,,,key_collisions_summed,info,1739,"Rows sharing (year, month, carrier, origin, dest, aircraft type, config, class) carry different measures (separate partial records); summed. Aircraft type is aggregated away at route level."
+t100,route_stats,,,cargo_rows_moved,info,120816,CLASS G/P raw rows moved to cargo_route_stats (passengers there are ~0).
+t100,route_stats,,,lf_ineligible_rows,info,1888,Route rows with seats=0 or departures=0 (schedule-only placeholders; 980 raw all-zero rows). passengers kept; excluded from load factor via lf_eligible.
+t100,route_stats,,,passengers_exceed_seats,warn,43,Route rows with passengers > seats (tiny air-taxi aircraft). Kept and flagged via lf_anomaly.
+t100,route_stats,,,distance_zero,info,832,Same-airport (origin = dest) rows; distance_valid=false. Exclude from distance/long-haul queries; kept in passenger totals.
+t100,route_stats,,,partial_year,warn,25257,Latest year is partial (through 202607); is_partial_year=true. Annual metrics use full years only.
+t100,route_stats,,,outside_scoring_window,info,3891,Months after 202606 are kept but in_scoring_window=false.
+t100,route_stats,,,departures_scheduled_dropped,info,652065,DEPARTURES_SCHEDULED is zero on ~28 % of flown passenger rows and is not carried into clean data.
+ontime,delay_stats,ANC,,moderate_coverage,warn,92,"coverage_pct 50.2 % over the scoring window (eligible, below 80 %)."
+ontime,delay_stats,ANC,,moderate_coverage,warn,92,"coverage_pct 50.2 % over the scoring window (eligible, below 80 %)."
+ontime,delay_stats,BOS,,moderate_coverage,warn,92,"coverage_pct 75.9 % over the scoring window (eligible, below 80 %)."
+ontime,delay_stats,BOS,,moderate_coverage,warn,92,"coverage_pct 76.0 % over the scoring window (eligible, below 80 %)."
+ontime,delay_stats,BTV,,moderate_coverage,warn,92,"coverage_pct 76.9 % over the scoring window (eligible, below 80 %)."
+ontime,delay_stats,BTV,,moderate_coverage,warn,92,"coverage_pct 76.7 % over the scoring window (eligible, below 80 %)."
+ontime,delay_stats,FAI,,low_coverage_delay_metric_null_for_scoring,high,92,coverage_pct 25.8 % over 201901-202606 is below 50 %; delay metrics are null for scoring (delay_score_eligible=false); descriptive stats kept.
+ontime,delay_stats,FAI,,low_coverage_delay_metric_null_for_scoring,high,92,coverage_pct 25.6 % over 201901-202606 is below 50 %; delay metrics are null for scoring (delay_score_eligible=false); descriptive stats kept.
+ontime,delay_stats,LAX,,moderate_coverage,warn,92,"coverage_pct 75.0 % over the scoring window (eligible, below 80 %)."
+ontime,delay_stats,LAX,,moderate_coverage,warn,92,"coverage_pct 75.1 % over the scoring window (eligible, below 80 %)."
+ontime,delay_stats,MHT,,moderate_coverage,warn,92,"coverage_pct 76.8 % over the scoring window (eligible, below 80 %)."
+ontime,delay_stats,MHT,,moderate_coverage,warn,92,"coverage_pct 76.8 % over the scoring window (eligible, below 80 %)."
+ontime,delay_stats,SFO,,moderate_coverage,warn,92,"coverage_pct 79.4 % over the scoring window (eligible, below 80 %)."
+ontime,delay_stats,SFO,,moderate_coverage,warn,92,"coverage_pct 79.4 % over the scoring window (eligible, below 80 %)."
+ontime,delay_stats,,,extreme_delays_kept,info,10456,"In-scope flown flights with ArrDelay > 600 min: kept in sums/maxima; use medians, p95, shares, or mean_delay_capped600_min."
+ontime,delay_stats,,,delayed_flight_all_causes_null,info,1,Delayed flights with all five cause columns null (not imputed; contribute 0 minutes).
+ontime,delay_stats,,,partial_year,warn,256,Latest year 2026 is partial; is_partial_year=true.
+ontime,delay_stats,,,aggregated_not_flight_level,info,10165946,Flight-level rows aggregated to airport-month x direction; none are written.
+fares,fares,,,latest_quarter_provisional,info,16,2026Q2 marked is_provisional=true.
+fares,fares,,,benchmark_is_16_airport_median,info,480,"Benchmark = median of the 16 scope airports per quarter (California-heavy, not national)."
+taf,forecast,,,enplanements_total_definition,info,1280,enplanements_total = aac+aat+commuter+us_flag+frgn_flag (international included); reconciles with T-100.
+taf,forecast,,,fy2025_is_forecast,warn,16,"FY2025 already ended but is a forecast in TAF 2025; use T-100 for actuals. TAF is fiscal year (Oct-Sep). Use for growth ratios, not levels."

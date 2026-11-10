@@ -9,7 +9,9 @@ datasource db {
 
 model Conversation {
   id        String    @id @default(cuid())
+  title     String? // null = derive from the first user message
   createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
   messages  Message[]
 }
 
@@ -24,4 +26,219 @@ model Message {
   createdAt      DateTime     @default(now())
 
   @@index([conversationId, createdAt])
+}
+
+// ---- Clean data tables: one per data/clean/*.csv, columns = docs/data-profile.md section 10 (snake_case via @map) ----
+
+model Airport {
+  airport String @id @map("airport")
+  icaoIdent String @map("icao_ident")
+  name String @map("name")
+  city String @map("city")
+  state String @map("state")
+  regionGroup String @map("region_group")
+  isNewEngland Boolean @map("is_new_england")
+  airportType String @map("airport_type")
+  scheduledService String @map("scheduled_service")
+  latitude Float @map("latitude")
+  longitude Float @map("longitude")
+  openRunways Int @map("open_runways")
+  closedRunways Int @map("closed_runways")
+  longestOpenRunwayFt Int @map("longest_open_runway_ft")
+  tafHubSize Int @map("taf_hub_size")
+  tafFacilityClass Int @map("taf_facility_class")
+}
+
+model RouteStat {
+  id Int @id @default(autoincrement())
+  year Int @map("year")
+  month Int @map("month")
+  period String @map("period")
+  origin String @map("origin")
+  dest String @map("dest")
+  carrier String @map("carrier")
+  carrierName String @map("carrier_name")
+  serviceClass String @map("service_class")
+  isInternational Boolean @map("is_international")
+  departures Float @map("departures")
+  seats Float @map("seats")
+  passengers Float @map("passengers")
+  distance Float @map("distance")
+  distanceValid Boolean @map("distance_valid")
+  lfEligible Boolean @map("lf_eligible")
+  lfAnomaly Boolean @map("lf_anomaly")
+  originInScope Boolean @map("origin_in_scope")
+  destInScope Boolean @map("dest_in_scope")
+  isPartialYear Boolean @map("is_partial_year")
+  inScoringWindow Boolean @map("in_scoring_window")
+
+  @@index([origin, period])
+  @@index([dest, period])
+  @@index([origin, dest, period])
+  @@index([origin, year, month])
+}
+
+model CargoRouteStat {
+  id Int @id @default(autoincrement())
+  year Int @map("year")
+  month Int @map("month")
+  period String @map("period")
+  origin String @map("origin")
+  dest String @map("dest")
+  carrier String @map("carrier")
+  carrierName String @map("carrier_name")
+  serviceClass String @map("service_class")
+  isInternational Boolean @map("is_international")
+  departures Float @map("departures")
+  freightLbs Float @map("freight_lbs")
+  mailLbs Float @map("mail_lbs")
+  passengers Float @map("passengers")
+  distance Float @map("distance")
+  distanceValid Boolean @map("distance_valid")
+  originInScope Boolean @map("origin_in_scope")
+  destInScope Boolean @map("dest_in_scope")
+  isPartialYear Boolean @map("is_partial_year")
+  inScoringWindow Boolean @map("in_scoring_window")
+
+  @@index([origin, period])
+  @@index([origin, dest, period])
+}
+
+model DelayStat {
+  id Int @id @default(autoincrement())
+  airport String @map("airport")
+  month Int @map("month")
+  year Int @map("year")
+  direction String @map("direction")
+  period String @map("period")
+  flights Int @map("flights")
+  cancelled Int @map("cancelled")
+  diverted Int @map("diverted")
+  flown Int @map("flown")
+  delayed15 Int @map("delayed15")
+  carrierMin Float @map("carrier_min")
+  weatherMin Float @map("weather_min")
+  nasMin Float @map("nas_min")
+  securityMin Float @map("security_min")
+  lateAircraftMin Float @map("late_aircraft_min")
+  nasDelayedFlights Int @map("nas_delayed_flights")
+  medianDelayMin Float @map("median_delay_min")
+  p95DelayMin Float @map("p95_delay_min")
+  meanDelayCapped600Min Float @map("mean_delay_capped600_min")
+  medianTaxiMin Float @map("median_taxi_min")
+  maxDelayMin Float @map("max_delay_min")
+  nasDelayShare Float @map("nas_delay_share")
+  nasMinPerFlown Float @map("nas_min_per_flown")
+  delayed15Share Float @map("delayed15_share")
+  cancelRate Float @map("cancel_rate")
+  t100Flights Float? @map("t100_flights")
+  coveragePct Float? @map("coverage_pct")
+  coverageWindowPct Float @map("coverage_window_pct")
+  delayScoreEligible Boolean @map("delay_score_eligible")
+  inScoringWindow Boolean @map("in_scoring_window")
+  isPartialYear Boolean @map("is_partial_year")
+
+  @@index([airport, period])
+  @@index([airport, direction, period])
+}
+
+model Fare {
+  id Int @id @default(autoincrement())
+  airport String @map("airport")
+  year Int @map("year")
+  quarter Int @map("quarter")
+  period String @map("period")
+  avgFareUsd Float @map("avg_fare_usd")
+  avgFareRealUsd Float @map("avg_fare_real_usd")
+  benchmarkMedianFareUsd Float @map("benchmark_median_fare_usd")
+  benchmarkMedianFareRealUsd Float @map("benchmark_median_fare_real_usd")
+  fareVsBenchmark Float @map("fare_vs_benchmark")
+  isProvisional Boolean @map("is_provisional")
+
+  @@index([airport, year, quarter])
+}
+
+model Forecast {
+  id Int @id @default(autoincrement())
+  airport String @map("airport")
+  fiscalYear Int @map("fiscal_year")
+  scenarioLabel String @map("scenario_label")
+  isForecast Boolean @map("is_forecast")
+  enplanementsTotal Int @map("enplanements_total")
+  enplanementsDomestic Int @map("enplanements_domestic")
+  enplanementsInternational Int @map("enplanements_international")
+  enplAirCarrier Int @map("enpl_air_carrier")
+  enplAirTaxi Int @map("enpl_air_taxi")
+  enplCommuter Int @map("enpl_commuter")
+  enplIntlUsFlag Int @map("enpl_intl_us_flag")
+  enplIntlForeignFlag Int @map("enpl_intl_foreign_flag")
+  opsCommercial Float? @map("ops_commercial")
+  opsTotal Float? @map("ops_total")
+  opsItinerantAirCarrier Float? @map("ops_itinerant_air_carrier")
+  opsItinerantAirTaxi Float? @map("ops_itinerant_air_taxi")
+  opsItinerantGa Float? @map("ops_itinerant_ga")
+  opsItinerantMilitary Float? @map("ops_itinerant_military")
+  opsLocalGa Float? @map("ops_local_ga")
+  opsLocalMilitary Float? @map("ops_local_military")
+
+  @@index([airport, fiscalYear])
+}
+
+model AirportMetric {
+  airport String @id @map("airport")
+  paxLast12m Float @map("pax_last12m")
+  paxPrior12m Float @map("pax_prior12m")
+  paxLatestFullYear Float @map("pax_latest_full_year")
+  pax2019 Float @map("pax_2019")
+  departuresLast12m Float @map("departures_last12m")
+  seatsLast12m Float @map("seats_last12m")
+  loadFactorLast12m Float @map("load_factor_last12m")
+  loadFactorPrior12m Float @map("load_factor_prior12m")
+  loadFactorLatestFullYear Float @map("load_factor_latest_full_year")
+  loadFactor2019 Float @map("load_factor_2019")
+  growthLast12mVsPrior12mPct Float @map("growth_last12m_vs_prior12m_pct")
+  growthLatestFullYearVs2019Pct Float @map("growth_latest_full_year_vs_2019_pct")
+  last12mWindow String @map("last12m_window")
+  prior12mWindow String @map("prior12m_window")
+  latestFullYear Int @map("latest_full_year")
+}
+
+model DataQualityFlag {
+  id Int @id @default(autoincrement())
+  source String @map("source")
+  table String @map("table")
+  airport String? @map("airport")
+  period String? @map("period")
+  flag String @map("flag")
+  severity String @map("severity")
+  rowsAffected Int @map("rows_affected")
+  detail String @map("detail")
+
+  @@index([airport])
+}
+
+// ---- Derived / bookkeeping ----
+
+/** Snapshot of one scoring run (one row per airport; rows of a run share batchId). */
+model AirportScore {
+  id             Int      @id @default(autoincrement())
+  batchId        String
+  airport        String
+  rank           Int
+  total          Float?
+  components     Json
+  flags          String[]
+  confidence     String
+  weightsVersion String
+  createdAt      DateTime @default(now())
+
+  @@index([batchId])
+  @@index([airport, createdAt])
+}
+
+model IngestionRun {
+  id         Int       @id @default(autoincrement())
+  startedAt  DateTime  @default(now())
+  finishedAt DateTime?
+  rowCounts  Json
 }
