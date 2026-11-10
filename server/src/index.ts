@@ -1,3 +1,4 @@
+import { LlmError } from "./llm/errors.js";
 import cors from "cors";
 import express from "express";
 import { z } from "zod";
@@ -12,7 +13,6 @@ const provider = createProvider();
 
 app.get("/api/health", (_req, res) => {
   res.json({ ok: true, provider: provider.name });
-});
 
 app.use("/api", conversationRouter(provider));
 
@@ -26,7 +26,14 @@ app.use((err: any, _req: express.Request, res: express.Response, _next: express.
     return;
   }
   console.error(err);
-  res.status(500).json({ error: err?.message ?? "Internal error" });
+  if (err instanceof LlmError) {
+    const retryAt = err.retryAfterSeconds !== null ? new Date(Date.now() + Math.ceil(err.retryAfterSeconds) * 1000).toISOString() : undefined;
+    const status = err.kind === "rate_limit" ? 429 : err.kind === "too_large" ? 413 : 502;
+    res.status(status).json({ error: "The AI model could not answer.", kind: err.kind, ...(retryAt && { retryAt }) });
+    return;
+  }
+  res.status(500).json({ error: "Something went wrong on the server.", kind: "server" });
+});
 });
 
 app.listen(config.port, () => console.log(`server on :${config.port} (provider=${provider.name})`));

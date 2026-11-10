@@ -1,5 +1,6 @@
 import OpenAI from "openai";
 import type { LlmRateLimit } from "@airport/shared";
+import { LlmError } from "./errors.js";
 import type { LLMMessage, LLMProvider, LLMResponse, ToolSpec } from "./types.js";
 
 export class GroqProvider implements LLMProvider {
@@ -20,7 +21,7 @@ export class GroqProvider implements LLMProvider {
     try {
       return await this.call(this.model, messages, tools);
     } catch (err) {
-      throw new Error(describeGroqError(err));
+      throw classifyGroqError(err);
     }
   }
 
@@ -79,6 +80,22 @@ export function describeGroqError(err: unknown): string {
   const e = err as { status?: number; message?: string; error?: { message?: string } };
   const msg = e?.error?.message ?? e?.message ?? String(err);
   return `Groq error${e?.status ? ` ${e.status}` : ""}: ${msg.replace(/^\d{3}\s+/, "")}`;
+}
+
+/** Classify an OpenAI-SDK error from Groq into a client-safe kind plus retry delay. */
+export function classifyGroqError(err: unknown): LlmError {
+  const e = err as { status?: number; headers?: { get?: (k: string) => string | null } };
+  const detail = describeGroqError(err);
+  const status = e?.status;
+  if (status === 429) {
+    const header = parseDurationSeconds(e.headers?.get?.("retry-after") ?? null);
+    const m = /try again in ([0-9hms.]+?)[.]?(?:\s|$)/i.exec(detail);
+    return new LlmError(detail, "rate_limit", header ?? (m ? parseDurationSeconds(m[1]) : null));
+  }
+  if (status === 413 || /request too large/i.test(detail)) return new LlmError(detail, "too_large");
+  if (status === 401 || status === 403) return new LlmError(detail, "auth");
+  if (status === 400 || status === 404 || status === 422) return new LlmError(detail, "model");
+  return new LlmError(detail, "unavailable");
 }
 
 const num = (v: string | null) => (v !== null && v !== "" && Number.isFinite(Number(v)) ? Number(v) : null);
