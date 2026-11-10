@@ -34,6 +34,8 @@ npm run dev
 ```
 Server on http://localhost:3001, UI on http://localhost:5173 (Vite picks the next free port if 5173 is taken).
 
+Changing `PORT` in `.env` moves only the server. The UI proxies `/api` to `http://localhost:3001` (hardcoded in `client/vite.config.ts`), so change that target too or the UI will talk to whatever is on 3001. Changing the Postgres host port means editing both `docker-compose.yml` and the port in `DATABASE_URL`.
+
 Smoke test the API (mock provider returns a canned answer plus real tool evidence):
 ```bash
 curl -X POST localhost:3001/api/chat -H "content-type: application/json" -d '{"message":"Rank the New England airports for terminal-expansion investment."}'
@@ -49,7 +51,7 @@ Follow-ups work in the same chat (for example "why is BTV above BDL?").
 
 ## Tests and checks
 ```bash
-npm test -w server        # 78 unit tests (scoring, tools, LLM providers)
+npm test -w server        # 81 tests (scoring, tools, LLM providers); needs the seeded Postgres from Setup
 npm run typecheck         # shared, server and client
 ```
 E2E against a live Groq-backed server (server running with `LLM_PROVIDER=groq`):
