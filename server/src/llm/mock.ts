@@ -22,11 +22,15 @@ export class MockProvider implements LLMProvider {
           "[MOCK ANSWER] This is a canned reply to the rankAirports tool result; it does not summarise real figures. " +
           "Sources, assumptions and flags are shown in the evidence panel. Not a real recommendation.",
         toolCalls: [],
+        usage: null,
+        rateLimit: null,
       };
     }
     return {
       content: null,
       toolCalls: [{ id: "mock_call_1", name: "rankAirports", arguments: JSON.stringify(MOCK_TOOL_ARGS.rankAirports) }],
+      usage: null,
+      rateLimit: null,
     };
   }
 }

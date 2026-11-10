@@ -297,3 +297,8 @@ body.resizing { cursor: col-resize; user-select: none; }
 .icon-btn:hover { color: var(--ink); background: var(--bg); }
 .icon-btn svg { font-size: 17px; }
 @media (max-width: 520px) { .rank-vol small { display: none; } }
+
+.usage { display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 4px; font-size: 11.5px; color: var(--ink-3); font-variant-numeric: tabular-nums; flex-wrap: wrap; }
+.usage-bar { width: 72px; height: 3px; border-radius: 2px; background: var(--line, rgba(128,128,128,.25)); overflow: hidden; }
+.usage-bar i { display: block; height: 100%; background: var(--ink-3); border-radius: 2px; transition: width .3s var(--ease); }
+.usage-bar.low i { background: var(--amber-ink); }

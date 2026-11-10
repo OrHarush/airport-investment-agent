@@ -21,6 +21,24 @@ export interface EvidenceItem extends ToolResult {
   tool: string;
 }
 
+/** Token usage of one answer, summed over every LLM round. */
+export interface LlmUsage {
+  promptTokens: number;
+  completionTokens: number;
+  totalTokens: number;
+  rounds: number;
+}
+/** Provider rate-limit window as reported by the provider's x-ratelimit-* headers (Groq: per minute). */
+export interface LlmRateLimit {
+  tokensLimit: number | null;
+  tokensRemaining: number | null;
+  /** Seconds until the token window resets. */
+  resetTokens: number | null;
+  requestsLimit: number | null;
+  requestsRemaining: number | null;
+  resetRequests: number | null;
+}
+
 export interface ChatRequest { message: string }
-export interface ChatResponse { reply: string; evidence: EvidenceItem[] }
+export interface ChatResponse { reply: string; evidence: EvidenceItem[]; usage: LlmUsage | null; rateLimit: LlmRateLimit | null }
 export interface ConversationResponse { messages: ChatMessageDTO[] }

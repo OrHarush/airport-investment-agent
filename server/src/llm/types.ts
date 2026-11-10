@@ -1,3 +1,5 @@
+import type { LlmRateLimit } from "@airport/shared";
+
 export interface ToolSpec {
   name: string;
   description: string;
@@ -18,6 +20,10 @@ export type LLMMessage =
 export interface LLMResponse {
   content: string | null;
   toolCalls: LLMToolCall[];
+  /** Tokens for this completion (null: provider does not report). */
+  usage?: { promptTokens: number; completionTokens: number; totalTokens: number } | null;
+  /** Latest rate-limit headers (null: provider has none, e.g. mock). */
+  rateLimit?: LlmRateLimit | null;
 }
 
 export interface LLMProvider {
