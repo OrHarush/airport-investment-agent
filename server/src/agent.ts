@@ -2,6 +2,7 @@ import type { EvidenceItem, ToolCallRecord } from "@airport/shared";
 import { config } from "./config.js";
 import type { LLMMessage, LLMProvider } from "./llm/types.js";
 import { SYSTEM_PROMPT } from "./agent/systemPrompt.js";
+import { compactForModel } from "./tools/compact.js";
 import { executeTool, toolSpecs } from "./tools/index.js";
 
 export { SYSTEM_PROMPT };
@@ -30,7 +31,8 @@ export async function runAgent(provider: LLMProvider, history: LLMMessage[]): Pr
       messages.push({
         role: "tool",
         toolCallId: call.id,
-        content: JSON.stringify(out.ok ? out.result : { error: out.error }),
+        // UI evidence keeps the full result; the model gets the compact copy (Groq 8k tokens/min).
+        content: JSON.stringify(out.ok ? compactForModel(call.name, out.result) : { error: out.error }),
       });
     }
   }
