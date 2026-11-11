@@ -62,7 +62,7 @@ BTV wins on load factor, growth and fares; BOS wins on congestion and size. Full
 | One ranking or two | Two views: "most pressured" (score) and "biggest absolute opportunity" (unmet seats, 12-month pax) | The views disagree. BOS has 398,907 unmet seats, BTV 14,587. One number would hide that. |
 | Unmet demand definition | seats x max(0, LF - 0.85) per route-month, summed | Observed turned-away demand is not public. 85% is a judgment threshold, not a measured one. |
 | Bulk data vs live API | Bulk datasets plus one live API | Reproducible and offline-capable; the live API has no history, so it only covers current state. Cost: data is a snapshot. |
-| Model / provider | Groq free tier (8,000 tokens/min), mock provider for tests | Free and fast, but a ranking result of about 7,400 tokens hit the cap. Fixed by compacting model payloads (about 1,986 tokens for all 16). Cost: the model sees less detail than the UI. |
+| Model / provider | Groq free tier (8,000 tokens/min per request, 200,000 tokens/day per organization), mock provider for tests | Free, so anyone can run it. Cost: it is very small. Tool results are compacted for the model (16-airport ranking about 7,400 to about 1,986 tokens) and chat history is capped at 8 messages, but questions that need data on many airports, and long chats, can still fail with a plain-language message. Not tuned for capability, so answers can have small slips (a wrong rank count or list order) that the number check cannot catch. A paid tier would lift this; scoring and tools are model-independent. |
 | Checking the LLM | Lexical grounding check in the E2E runner | Cheap and catches invented numbers. Cost: it proves a number exists in tool output, not that it is attached to the right metric. |
 
 ## 6. Where AI is used, and where not
@@ -86,7 +86,7 @@ BTV wins on load factor, growth and fares; BOS wins on congestion and size. Full
 - **ANC is cargo-heavy:** freighters are 56.5% of departures. Long-haul share is therefore always shown passenger-only and with cargo at 1,500 / 2,500 / 3,000 mi (2.8% vs 31.1% at 3,000 mi). The cutoff is a parameter, default 3,000 mi.
 - **Small peer set (16):** scores are relative, not absolute. A score of 70 means "high among these 16".
 - **Grounding check is lexical**, as noted above. I read each E2E answer against the tool output by hand.
-- **Groq free tier:** back-to-back large questions can still hit the 8,000 tokens/min cap.
+- **Free LLM tier limits what it can do.** At 8,000 tokens per minute per request and 200,000 per day, one answer costs about 5,000 to 10,000 tokens. The four example questions and short follow-ups work (E2E). Multi-airport questions that need several tool calls (for example fares across all California airports) and long chats can fail with a "too long" or "usage limit" message; start a new chat or ask about fewer airports. The model can also misstate ranks or list order even when every number is real.
 
 ## 8. What I would do next
 - Add more airports and a configurable peer set.

@@ -43,6 +43,6 @@ Remaining: design doc + README (session I), fresh-clone test, manual browser cli
 - Unmet demand is a proxy (85% LF threshold), not observed turned-away demand.
 - 2026 data is partial. Peer set is small (16). Remote-airport fares are high (BTV/FAI).
 - Number-grounding check is lexical.
-- Groq free tier 8k tokens/min: back-to-back big questions can hit 413 (mitigated by compact payloads).
+- Groq free tier: 8k tokens/min per request and 200k tokens/day per organization (not per key). Mitigated by compact tool payloads and a history cap (last 8 messages, 8,000 chars). Multi-airport questions and long chats can still fail with a plain-language message. Decision: stay on the free tier, document the limits, do not add paid dependencies. See README "Known limits".
 - Usage footer shows a snapshot of the last answer's rate limit; no live countdown; not stored with messages.
 - Prisma generate EPERM on Windows: stop the dev server, rerun `npx prisma generate`.

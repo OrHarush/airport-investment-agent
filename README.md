@@ -70,8 +70,19 @@ cd server && npx tsx scripts/e2e.mts
 | `docs/` | Design doc, data sources, data profile, E2E results |
 
 ## Known limits
-- Groq free tier allows 8,000 tokens/min. Tool results are compacted for the model, but back-to-back large questions can still return a 413.
-- Unmet demand is a load-factor proxy (85% threshold), not observed turned-away demand. 2026 data is partial. See [docs/design.md](docs/design.md) section 7.
+**The free LLM tier is the main constraint.** The project runs on Groq's free tier (`openai/gpt-oss-120b`) on purpose, so anyone can run it without paying. That tier is very small:
+- **8,000 tokens per minute, per request.** One answer costs about 5,000 to 10,000 tokens (system prompt about 2,500, tool results 1,000 to 2,000 each, plus chat history).
+- **200,000 tokens per day, per Groq organization** (not per key, so a second key on the same account shares it). That is roughly 20 to 40 answers a day. The usage gauge shows only the per-minute budget, not the daily one.
+
+What this means in practice:
+- **Works (checked by the E2E run):** the four example questions, and short follow-ups about the same data ("show only California", "why is X above Y?").
+- **Can fail:** questions that need data on many airports in several tool calls (for example "which California airport has the highest fares"), and long chats. You get a plain message ("usage limit, try again at ...", or "this chat has grown too long, start a new chat") instead of an answer.
+- **Workarounds:** start a new chat for each topic, ask about fewer airports, or wait for the limit to reset.
+- **Mitigations already in place:** tool results are compacted before they go to the model (the 16-airport ranking drops from about 7,400 to about 2,000 tokens; the UI still gets the full result), and only the last 8 messages (about 8,000 characters, older answers shortened) are sent as history.
+- **Reviewers:** please use your own free Groq key. A shared key runs out of daily tokens quickly.
+- **Lifting it:** a paid tier, or another OpenAI-compatible endpoint with tool calling (set `LLM_BASE_URL` and `LLM_MODEL`, not tested), removes these limits. Scoring and tools do not depend on the model.
+
+Data limits: unmet demand is a load-factor proxy (85% threshold), not observed turned-away demand, and 2026 data is partial. See [docs/design.md](docs/design.md) section 7.
 
 ## Windows notes
 - `prisma generate` can fail with `EPERM` while the dev server holds the Prisma engine file. Stop `npm run dev`, rerun `npm run db:generate -w server`, then start the server again.
