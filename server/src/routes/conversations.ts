@@ -2,6 +2,7 @@ import { Router } from "express";
 import { z } from "zod";
 import type { ChatMessageDTO } from "@airport/shared";
 import { runAgent } from "../agent.js";
+import { buildHistory } from "../agent/history.js";
 import { prisma } from "../db.js";
 import { getLlmStatus, recordLlmStatus } from "../llm/status.js";
 import type { LLMMessage, LLMProvider } from "../llm/types.js";
@@ -111,7 +112,7 @@ export function conversationRouter(provider: LLMProvider) {
 
       const userMsg = await prisma.message.create({ data: { conversationId: conv.id, role: "user", content: message } });
       const rows = await prisma.message.findMany({ where: { conversationId: conv.id }, orderBy: { createdAt: "desc" }, take: 20 });
-      const history: LLMMessage[] = rows.reverse().map((m) => ({ role: m.role as "user" | "assistant", content: m.content }));
+      const history = buildHistory(rows.reverse());
 
       let result;
       try {

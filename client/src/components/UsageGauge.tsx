@@ -11,6 +11,25 @@ export interface LlmInfo {
   sessionTokens: number;
 }
 
+const KEY = "airport-llm-usage";
+
+/** Last usage lives in the browser so it survives refreshes and server restarts. Storage may be unavailable, so every access is guarded. */
+export function loadSavedLlm(): LlmInfo | null {
+  try {
+    const v = JSON.parse(localStorage.getItem(KEY) ?? "null") as LlmInfo | null;
+    return v && typeof v.receivedAt === "number" && v.rateLimit ? v : null;
+  } catch {
+    return null;
+  }
+}
+export function saveLlm(v: LlmInfo): void {
+  try {
+    localStorage.setItem(KEY, JSON.stringify(v));
+  } catch {
+    /* ignore */
+  }
+}
+
 const tok = (n: number) => (n >= 10_000 ? `${Math.round(n / 1000)}k` : n >= 1000 ? `${(n / 1000).toFixed(1).replace(/\.0$/, "")}k` : String(n));
 const secs = (s: number) => (s >= 60 ? `${Math.floor(s / 60)}m ${Math.round(s % 60)}s` : `${Math.round(s)}s`);
 

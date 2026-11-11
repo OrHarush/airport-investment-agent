@@ -43,7 +43,7 @@ export function friendlyError(e: unknown): string {
       if (at && secs !== null) return secs <= 90 ? `The AI model has reached its usage limit. Try again in ${Math.max(secs, 5)} seconds.` : `The AI model has reached its usage limit. Try again at ${clock(at)}.`;
       return "The AI model has reached its usage limit. Try again in a few minutes.";
     }
-    case "too_large": return "This question needs more data than the AI model can take at once. Try a narrower question.";
+    case "too_large": return "This chat has grown too long for the AI model to handle at once. Start a new chat and ask again.";
     case "auth": return "The AI model isn’t set up correctly on the server, so it can’t answer right now.";
     case "model": return "The AI model couldn’t complete this request. Try again or rephrase the question.";
     case "unavailable": return "The AI model is temporarily unavailable. Try again in a moment.";

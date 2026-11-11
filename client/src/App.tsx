@@ -2,7 +2,7 @@ import AddRounded from "@mui/icons-material/AddRounded";
 import ViewSidebarOutlined from "@mui/icons-material/ViewSidebarOutlined";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { ChatMessageDTO, EvidenceItem } from "@airport/shared";
-import type { LlmInfo } from "./components/UsageGauge";
+import { loadSavedLlm, saveLlm, type LlmInfo } from "./components/UsageGauge";
 import {
   ApiError,
   friendlyError,
@@ -39,7 +39,7 @@ export default function App() {
   const [listError, setListError] = useState(false);
   const [reloadTick, setReloadTick] = useState(0);
   const [pending, setPending] = useState<Record<string, boolean>>({});
-  const [llm, setLlm] = useState<LlmInfo | null>(null);
+  const [llm, setLlm] = useState<LlmInfo | null>(loadSavedLlm);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const lastText = useRef<Record<string, string>>({});
   const skipLoad = useRef<string | null>(null); // conversation we just created locally: don't refetch it
@@ -72,10 +72,13 @@ export default function App() {
     refreshList();
   }, [refreshList]);
 
-  // Last usage the server remembers, so the gauge survives a page refresh.
+  // Last usage: kept in the browser (localStorage) and, if the server has a newer one, taken from it.
   useEffect(() => {
-    getLlmUsage().then((s) => s && setLlm((p) => p ?? s)).catch(() => {});
+    getLlmUsage().then((s) => s && setLlm((p) => (!p || s.receivedAt > p.receivedAt ? s : p))).catch(() => {});
   }, []);
+  useEffect(() => {
+    if (llm) saveLlm(llm);
+  }, [llm]);
 
   // Load the conversation named by the URL.
   useEffect(() => {
