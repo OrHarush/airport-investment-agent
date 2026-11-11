@@ -89,7 +89,8 @@ BTV wins on load factor, growth and fares; BOS wins on congestion and size. Full
 - **Free LLM tier limits what it can do.** At 8,000 tokens per minute per request and 200,000 per day, one answer costs about 5,000 to 10,000 tokens. The four example questions and short follow-ups work (E2E). Multi-airport questions that need several tool calls (for example fares across all California airports) and long chats can fail with a "too long" or "usage limit" message; start a new chat or ask about fewer airports. The model can also misstate ranks or list order even when every number is real.
 
 ## 8. What I would do next
+- **Use a better model with higher limits (the main gap).** The free tier is the biggest limit on usefulness today: it caps each request at 8,000 tokens, so multi-airport questions and long chats can fail, and it makes small slips in rank order. A stronger model with a higher token limit would answer multi-airport questions, keep a longer history, and remove most of the workarounds in section 7. Scoring and tools would not change.
 - Add more airports and a configurable peer set.
 - Add route-level economics (fares by route, DB1B) instead of airport averages.
 - Replace the load-factor proxy with real demand signals (booking or search data, capacity limits).
-- Add voice input and a paid LLM tier to remove the rate-limit constraint.
+- Add voice input.
