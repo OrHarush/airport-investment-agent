@@ -51,7 +51,7 @@ Follow-ups work in the same chat (for example "why is BTV above BDL?").
 
 ## Tests and checks
 ```bash
-npm test -w server        # 81 tests (scoring, tools, LLM providers); needs the seeded Postgres from Setup
+npm test -w server        # 86 tests (scoring, tools, LLM providers); needs the seeded Postgres from Setup
 npm run typecheck         # shared, server and client
 ```
 E2E against a live Groq-backed server (server running with `LLM_PROVIDER=groq`):

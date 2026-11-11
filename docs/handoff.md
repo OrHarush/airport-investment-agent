@@ -14,9 +14,7 @@ Requirements: deterministic scoring/ranking logic (not only LLM output); chat in
 Deliverables: source code + SHORT design/architecture doc covering scoring methodology, key tradeoffs, where/how AI is used. Prioritize clarity, reasoning and thoughtful design over completeness or polish.
 
 ## Status
-All build sessions done: data download, ETL, DB + 5 tools, scoring, live status, UI (multi-chat, resizable evidence panel, evidence cards), agent system prompt, E2E (4 questions pass on Groq, see docs/e2e-results.md), token/rate-limit usage footer. Tests: 78 pass, typecheck clean.
-Commits: 81796f6 (F2), 96873a4 / 0299d84 / bb89e33 (H cleanup), c8f7dcf (unmet demand card), e134883 (usage indicator).
-Remaining: design doc + README (session I), fresh-clone test, manual browser click-through with Groq, commit any leftover uncommitted files (scoring/, db/, routes/ were flagged as uncommitted), stop Docker.
+Complete. Data download, ETL, DB + 6 tools, scoring, live status, UI (multi-chat, resizable evidence panel, evidence cards, usage gauge), agent system prompt, plain-language error handling, design doc and README. E2E: all 4 questions pass on Groq (docs/e2e-results.md). Tests: 86 pass, typecheck clean. Fresh-clone test passed. Everything is committed and pushed.
 
 ## Key decisions
 - Scoring: min-max normalization (default; percentile kept as config option), scale = ln(pax12m), always against all 16 airports; region filters only choose which rows are displayed (rankInScope + rankOverall). Weights 30/25/20/15/10.
@@ -44,5 +42,5 @@ Remaining: design doc + README (session I), fresh-clone test, manual browser cli
 - 2026 data is partial. Peer set is small (16). Remote-airport fares are high (BTV/FAI).
 - Number-grounding check is lexical.
 - Groq free tier: 8k tokens/min per request and 200k tokens/day per organization (not per key). Mitigated by compact tool payloads and a history cap (last 8 messages, 8,000 chars). Multi-airport questions and long chats can still fail with a plain-language message. Decision: stay on the free tier, document the limits, do not add paid dependencies. See README "Known limits".
-- Usage footer shows a snapshot of the last answer's rate limit; no live countdown; not stored with messages.
+- The usage gauge shows a snapshot of the last answer's per-minute rate limit (it assumes the window refills fully once the reset time passes), kept in the browser so it survives a refresh. It does not show the daily limit, which Groq reports only in error messages.
 - Prisma generate EPERM on Windows: stop the dev server, rerun `npx prisma generate`.

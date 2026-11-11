@@ -68,7 +68,7 @@ BTV wins on load factor, growth and fares; BOS wins on congestion and size. Full
 ## 6. Where AI is used, and where not
 **LLM:** picks which tool to call, explains the result in plain language, and handles follow-ups ("why is BTV above BDL?"). It runs inside a 5-iteration tool loop, then gives a final tool-less answer.
 
-**Not LLM:** every number, score, rank, share and flag. Scoring is plain TypeScript with no I/O (78 unit tests pass).
+**Not LLM:** every number, score, rank, share and flag. Scoring is plain TypeScript with no I/O (86 unit tests pass).
 
 **Guardrails** (system prompt plus checks):
 - Every number must appear in a tool result from the conversation; if no tool provides it, the model says so.

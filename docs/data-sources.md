@@ -105,7 +105,6 @@ All raw files are in `data/raw/<source>/` (about 340 MB total, mostly On-Time).
 | % of long-haul flights out of ANC | T-100 with `CLASS` F/L, `DISTANCE` or `DISTANCE_GROUP`, `DEPARTURES_PERFORMED` | **No, but needs a definition.** Pick a cutoff (for example ≥1,500 mi or ≥2,500 mi) and decide whether to count freight. For passenger flights, filter to `CLASS` in (F, L). On-Time is not suitable for ANC because it omits small carriers and all freight. |
 | Unmet flight demand at SFO and why | T-100 seats vs passengers (load factor), scheduled vs performed departures, fares trend, On-Time delays and cancellations, TAF forecast | **Partial.** True unmet demand needs O&D or booking data (DB1B, not included here) and capacity limits. Proxies: load factor, fare rise, delay and cancellation rates. The "why" is inference. |
 
-## Suggested follow-ups (not blockers)
-- Add BTS DB1B (O&D survey) if route-level fares or demand are needed. It is large and was out of scope.
-- Add 2019 enplanements from T-100 passengers if TAF history is thin.
-- Re-run the download scripts monthly. T-100 lags about 3.5 months, On-Time about 2.5 months.
+## Out of scope for this project
+- BTS DB1B (O&D survey) for route-level fares or demand. It is large, so it is not used.
+- Scheduled refresh. The data is a one-time snapshot; T-100 lags about 3.5 months and On-Time about 2.5 months, so a refresh would re-run the download scripts monthly.

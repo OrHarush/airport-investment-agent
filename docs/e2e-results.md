@@ -1,22 +1,24 @@
 # E2E results (Groq, gpt-oss-120b)
 
-Run date: 2026-11-10. Provider `LLM_PROVIDER=groq`, model `openai/gpt-oss-120b`. Driver: `server/scripts/e2e.mts`, which posts each question to `POST /api/chat` (the endpoint the UI uses) on a Groq-backed server, then reads tool calls and evidence back from `GET /api/conversations/:id`.
+Final run: 2026-11-10 to 2026-11-11. Provider `LLM_PROVIDER=groq`, model `openai/gpt-oss-120b`. Driver: `server/scripts/e2e.mts`. It posts each question to `POST /api/chat` (the endpoint the UI uses) on a Groq-backed server, then reads tool calls and evidence back from the response. The four questions are single-turn, each in a new conversation. The free tier's token limits meant the final four passes were run in separate batches against the final prompt (`server/src/agent/systemPrompt.ts`); the answers below are those runs.
 
-Checks per answer:
-- **(a)** every number in the answer appears in a tool result or tool argument (script extracts numbers, tolerates 1-2 dp rounding, %, k and M suffixes)
-- **(b)** no methodology term or weight outside the tool methodology/normalization/weights/window fields
-- **(c)** caveats present
-- Expected values from the brief all present; the required tool was called with no tool error
-- Style: no flag codes, no tool/field names, no table for fewer than 3 airports
+## Result
 
-| # | Question | Tools | Result |
+| # | Question | Tool | Result |
 |---|---|---|---|
 | Q1 | Rank the New England airports for terminal-expansion investment. | rankAirports | **PASS** |
 | Q2 | Compare LAX vs SNA on congestion. | compareAirports | **PASS** |
 | Q3 | How much of ANC's traffic is long-haul? | getRouteMix | **PASS** |
 | Q4 | Where is the unmet demand at SFO? | getUnmetDemand | **PASS** |
 
-Iterations (prompt revisions needed before pass): Q1 4 runs, Q2 3, Q3 4, Q4 3. Q1 and Q3 took one more run than the 3-iteration cap: run 3 was partly lost to a Groq rate limit (see "Still open"), so each got a final confirming run after a small prompt/checker fix.
+## What is checked
+For every answer the runner checks:
+- **(a) Numbers are grounded:** every number in the answer appears in a tool result or tool argument. The script extracts numbers and tolerates 1 to 2 dp rounding and %, k and M suffixes.
+- **(b) No invented methodology:** no methodology term or weight outside the tool's methodology, normalization, weights and window fields.
+- **(c) Caveats present.**
+- **Expected values:** the figures a correct answer must contain are all present (for example Q1: BOS 71.9, BTV 70.8, 398,907 and 14,587 unmet seats). These come from the deterministic code, not from the model.
+- **Tool use:** the required tool was called with no tool error.
+- **Style:** no flag codes, tool or field names; no table for fewer than 3 airports; no dashes, `---` separators or dangling punctuation in prose; Q1 ends with a verdict sentence that names the leader and its drivers.
 
 ## Q1: Rank the New England airports for terminal-expansion investment.
 
@@ -25,38 +27,17 @@ Iterations (prompt revisions needed before pass): Q1 4 runs, Q2 3, Q3 4, Q4 3. Q
 
 **Final answer:**
 
-> The most pressured New England airports (by the deterministic score) are Boston (71.9), Burlington (70.8), Portland (61.4), Bradley (54.6), Providence (47.6) and Manchester (33.9).
-> 
-> **Most pressured (score)**  
-> 
-> | Rank | Airport | Score (min‑max vs all 16) |
-> |------|---------|---------------------------|
-> | 1 | BOS | 71.9 |
-> | 2 | BTV | 70.8 |
-> | 3 | PWM | 61.4 |
-> | 4 | BDL | 54.6 |
-> | 5 | PVD | 47.6 |
-> | 6 | MHT | 33.9 |
-> 
-> **Biggest absolute opportunity (unmet seats + 12‑month passengers)** – unmet seats are a proxy for demand above an 85 % load‑factor threshold (if a route’s load factor is below 0.85 the proxy is zero).  
-> 
-> | Rank | Airport | Unmet seats (proxy) | 12‑month passengers |
-> |------|---------|---------------------|---------------------|
-> | 1 | BOS | 398,907 | 20,964,773 |
-> | 2 | BDL | 48,986 | 3,216,571 |
-> | 3 | PWM | 24,452 | 1,277,986 |
-> | 4 | PVD | 17,210 | 2,084,833 |
-> | 5 | BTV | 14,587 | 703,880 |
-> | 6 | MHT | 5,661 | 675,010 |
-> 
-> The two views disagree: Boston tops both lists, but Burlington (rank 2 on score) falls to rank 5 on absolute opportunity, while Bradley jumps from rank 4 on score to rank 2 on opportunity.
-> 
-> No airport in this group reaches the 0.85 load‑factor threshold (highest: Burlington 0.818).  
-> 
-> *Flags that affect the conclusion*: moderate‑coverage delay data for BOS, BTV and MHT, and partial‑year 2026 data.
+> The most pressured New England airports, by score, are BOS 71.9, BTV 70.8, PWM 61.4, BDL 54.6, PVD 47.6 and MHT 33.9.  
+> By absolute unmet‑seat opportunity the order is BOS 398,907 unmet seats (20,964,773 12‑month passengers), BDL 48,986 unmet seats (3,216,571 12‑month passengers), PWM 24,452 unmet seats (1,277,986 12‑month passengers), PVD 17,210 unmet seats (2,084,833 12‑month passengers), BTV 14,587 unmet seats (703,880 12‑month passengers) and MHT 5,661 unmet seats (675,010 12‑month passengers).  
+> The two views disagree: BTV jumps from second in the pressure score to fifth in absolute opportunity.  
+> Score is a min‑max relative score across all 16 airports.  
+> No airport reaches the 0.85 load‑factor threshold (highest BTV 0.818).  
+> Partial‑2026 data and limited delay‑coverage for some airports modestly affect the conclusions.  
+>
+> The strongest candidate is BOS, driven by high utilization (score 92.3, raw 0.813), large scale (score 86.8) and notable congestion (score 73.9).
 
 **Checks:** PASS
-- (a) ungrounded numbers: none (47 numbers checked)
+- (a) ungrounded numbers: none (31 numbers checked)
 - (b) methodology issues: none
 - (c) missing caveats: none
 - expected values missing: none
@@ -69,18 +50,10 @@ Iterations (prompt revisions needed before pass): Q1 4 runs, Q2 3, Q3 4, Q4 3. Q
 
 **Final answer:**
 
-> LAX is more congested than SNA on the NAS‑delay rate and on arrivals delayed ≥ 15 min, and it also handles far more departures per open runway.  
-> 
-> - NAS‑delay rate (2025‑07 to 2026‑06): LAX 9.41 % on departures and 9.26 % on arrivals; SNA 8.92 % on departures and 8.15 % on arrivals.  
-> - Share of flights delayed ≥ 15 min (same window): LAX 19.96 % (departures) and 19.84 % (arrivals); SNA 19.98 % (departures) and 18.51 % (arrivals).  
-> - Departures per open runway (12‑month T‑100): LAX 63,607; SNA 25,489.  
-> 
-> LAX’s higher NAS‑delay rates and its larger arrivals‑delay‑15‑minute share indicate greater congestion, while the delayed‑15‑minute share on departures is essentially equal. The runway‑utilization figure further underscores LAX’s heavier traffic load.  
-> 
-> *Note: LAX’s delay figures cover only about 75 % of its flights, a moderate‑coverage warning that may affect the precision of the comparison.*
+> LAX is more congested than SNA on most measured metrics. For the 12‑month window 2025‑07 to 2026‑06, LAX’s NAS‑attributed delay rate is 9.41 % on departures and 9.26 % on arrivals, versus 8.92 % and 8.15 % for SNA; the share of flights delayed 15 minutes or more is 19.96 % on departures and 19.84 % on arrivals at LAX, compared with 19.98 % on departures and 18.51 % on arrivals at SNA (the departure‑delay shares are essentially equal); and LAX handles 63,607 departures per open runway versus 25,489 at SNA. The two airports have similar departure‑delay‑over‑15‑minute shares, but LAX exceeds SNA on NAS delay rates and runway‑based departure volume, indicating higher overall congestion. Note that the LAX delay figures cover only about 75 % of its flights and 2026 data are partial‑year, which may affect the comparison.
 
 **Checks:** PASS
-- (a) ungrounded numbers: none (17 numbers checked)
+- (a) ungrounded numbers: none (14 numbers checked)
 - (b) methodology issues: none
 - (c) missing caveats: none
 - expected values missing: none
@@ -93,16 +66,15 @@ Iterations (prompt revisions needed before pass): Q1 4 runs, Q2 3, Q3 4, Q4 3. Q
 
 **Final answer:**
 
-> ANC’s long‑haul share is **2.8 % of passenger‑only departures and 31.1 % when cargo flights are included** (default 3,000‑mi cutoff).  
-> 
-> - At the 1,500‑mi cutoff the shares are **17.7 % (passenger‑only) and 49.3 % (including cargo)**.  
-> - At the 2,500‑mi cutoff the shares are **9.8 % (passenger‑only) and 43.3 % (including cargo)**.  
-> 
-> Cargo flights make up **56.5 % of all ANC departures**, so counting cargo raises the long‑haul proportion.  
-> 
-> The share is calculated as long‑haul departures divided by total departures (the scoring engine’s long‑haul share function).  
-> 
-> Definition‑sensitive share ranges and the airport’s cargo‑heavy traffic affect this result.
+> ANC’s long‑haul share depends on the distance cutoff.  
+>
+> - At 1,500 mi, 17.69 % of passenger departures and 49.26 % of all departures (including cargo) are long‑haul.  
+> - At 2,500 mi, the shares fall to 9.8 % (passenger‑only) and 43.27 % (including cargo).  
+> - At the default 3,000 mi cutoff, only 2.82 % of passenger departures and 31.12 % of all departures are long‑haul.  
+>
+> Cargo flights make up 56.53 % of ANC’s total departures, so including cargo raises the long‑haul proportion markedly.  
+>
+> A cargo‑heavy traffic mix influences these figures.
 
 **Checks:** PASS
 - (a) ungrounded numbers: none (10 numbers checked)
@@ -118,40 +90,50 @@ Iterations (prompt revisions needed before pass): Q1 4 runs, Q2 3, Q3 4, Q4 3. Q
 
 **Final answer:**
 
-> SFO’s unmet‑demand proxy totals **556,759 seats** for the 2025‑07 to 2026‑06 window (route‑month grain).  
-> 
-> * The annual airport‑level figure is **0 unmet passengers** because the overall load factor (0.8227) is at or below the 0.85 threshold, so the proxy yields zero.  
-> * The top‑six routes by unmet seats are: EWR (54,372 seats, peak 2025‑08 LF 0.9509), JFK (49,419 seats, peak 2026‑06 LF 0.9476), ORD (34,459 seats, peak 2025‑08 LF 0.9426), HNL (30,766 seats, peak 2025‑07 LF 0.9659), DFW (27,499 seats, peak 2025‑08 LF 0.9306), HKG (21,466 seats, peak 2026‑03 LF 0.9745).  
-> * The three peak months are: 2026‑06 (126,730 seats, 77 routes above threshold, top route JFK), 2025‑07 (81,448 seats, 64 routes, top HNL), 2025‑08 (78,936 seats, 54 routes, top ORD).  
-> 
-> Unmet demand is defined as seats × max(0, load‑factor − 0.85); it reflects passengers above an 85 % load‑factor comfort level, not observed turned‑away demand. No airport in this group reaches the 0.85 load‑factor threshold (highest load factor 0.8227).  
-> 
-> *Flags that affect this conclusion*: the unmet‑demand figure is inferred, and the 2026 data are partial‑year.
+> SFO’s unmet‑demand proxy shows 556,759 unmet seats across route‑months in the 2025‑07 to 2026‑06 window, while the annual airport‑level figure is zero because the overall load factor of 0.8227 is below the 0.85 threshold.  
+>
+> Top routes by unmet seats are: EWR: 54,372 unmet seats, peak 2025‑08, load factor 0.9509; JFK: 49,419 unmet seats, peak 2026‑06, load factor 0.9476; ORD: 34,459 unmet seats, peak 2025‑08, load factor 0.9426; HNL: 30,766 unmet seats, peak 2025‑07, load factor 0.9659; DFW: 27,499 unmet seats, peak 2025‑08, load factor 0.9306; HKG: 21,466 unmet seats, peak 2026‑03, load factor 0.9745.  
+>
+> Peak months are: 2026‑06: 126,730 unmet seats, top route JFK; 2025‑07: 81,448 unmet seats, top route HNL; 2025‑08: 78,936 unmet seats, top route ORD.  
+>
+> The unmet‑demand numbers are a proxy for demand above an 85 % load‑factor comfort level, not observed turned‑away passengers, and the airport‑level unmet figure is zero because the load factor (0.8227) does not exceed the threshold.  
+>
+> Flags note that the estimate is inferred and that 2026 data are only partial‑year, which limits precision.
 
 **Checks:** PASS
-- (a) ungrounded numbers: none (27 numbers checked)
+- (a) ungrounded numbers: none (20 numbers checked)
 - (b) methodology issues: none
 - (c) missing caveats: none
 - expected values missing: none
 - style issues: none
 
-## Changes made during the run
+## What the checks can and cannot show
+- **The number check is lexical.** It proves a number exists somewhere in the tool output, not that it is attached to the right airport or metric. The expected-value patterns catch this for the headline figures, and each answer was also read against the tool output by hand. Answers to new questions can still contain small slips, such as a wrong rank count or list order, even when every number is real.
+- **The E2E drives the API, not the browser.** It calls the same endpoint as the UI. The UI was exercised by hand with the example questions and follow-ups.
+- **Q2 headline.** The model says LAX is more congested on most measures. The answer states that the departure delayed-15+ shares are essentially equal (19.96% vs 19.98%), so the headline is hedged correctly.
+- **Free-tier pacing.** Groq's free tier allows 8,000 tokens per minute per request and 200,000 per day per organization. The runner waits 10 s between questions and retries once after a rate-limit failure. See the README "Known limits" section for what this means for users.
 
-Prompt (`server/src/agent/systemPrompt.ts`, replaces the inline prompt in `agent.ts`):
-- Iteration 1 to 2: Q3 gave only the 3000 mi band and Q4 listed only one route, so the prompt now demands all three bands (passenger-only and with cargo) plus the cargo share, the top 6 routes and the 3 peak months. Q2 omitted delayed-15+ and departures per runway, so a congestion template was added. Q1 never compared load factor with 0.85, so every rankAirports answer must state the highest load factor against 0.85.
-- Iteration 2 to 3: Q1 now needs an explicit "The two views disagree:" sentence. Tables are limited to 3+ airports. Flag codes, field names and function names must not be printed (Q4 had printed INFERENCE / PARTIAL_2026 / DELAY_COVERAGE, Q3 printed `longHaulShare()`). Numbers use ASCII digits with comma thousands separators.
-- Final: "unmet seats" and "12-month passengers" in words; the 0.85 comparison is limited to rankAirports answers (Q4 had said "No airport in this group" for a single airport).
+## Changes made while building the E2E
+Prompt (`server/src/agent/systemPrompt.ts`):
+- **Completeness:** Q3 now needs all three cutoff bands (passenger-only and with cargo) plus the cargo share; Q4 needs the top 6 routes and the 3 peak months; Q2 follows a congestion template (NAS delay rate, delayed-15+ share, departures per open runway); every ranking answer states the highest load factor against 0.85.
+- **Q1 structure:** an explicit "The two views disagree:" sentence, and a closing verdict sentence naming the strongest candidate and its component drivers.
+- **Style:** tables only for 3 or more airports; no flag codes, field names or function names; ASCII digits with comma thousands separators; no dashes or dangling punctuation; lists as "label: value"; dates as YYYY-MM.
+- **Scope:** the 16 airports and data sources are listed in the prompt, so "which airports do you have data for" is answered without a tool call.
 
-Tool/infra bug found by the E2E: `getRouteMix`'s schema (`cutoffMi: positive()`) was emitted with boolean `exclusiveMinimum` (OpenAPI 3 style). Groq rejected it as invalid JSON Schema, so the call failed and fell back to a model that does not exist on this key. Fixed by switching zod-to-json-schema to `target: "jsonSchema7"` in `server/src/tools/index.ts`.
+Tools and infrastructure:
+- `getRouteMix`'s schema (`cutoffMi: positive()`) was emitted with boolean `exclusiveMinimum`, which Groq rejects as invalid JSON Schema. Fixed by using `target: "jsonSchema7"` in `server/src/tools/index.ts`.
+- `rankAirports` now treats an empty `airports` array as all 16 (Groq rejected the model's empty-array call against `minItems: 1`).
+- The unused fallback model (`llama-3.3-70b-versatile`, which does not exist for this Groq key and only masked the real error) was removed. A Groq error is shown to the user in plain language.
+- Provider failures are classified on the server (rate limit, too large, auth, model, unavailable) and returned without codes or raw provider text.
 
-## Still open
-- **Groq on-demand TPM limit (8000 tokens/min).** A `rankAirports` or `getUnmetDemand` tool result is about 6-7k tokens, so two such questions inside a minute return 413. The runner waits 70 s between questions. A real user doing back-to-back ranking questions will hit this. A slimmer `rankAirports` payload (or a paid Groq tier) would fix it; I did not change the tool output.
-- **Fallback model removed (resolved).** `llama-3.3-70b-versatile` returned 404 for this Groq key and only masked the real error, so there is no fallback model any more; a Groq error is shown as-is.
-- **Driven through the API, not the browser.** The E2E calls the same `/api/chat` endpoint as the UI; I did not click through the React UI.
-- **Q2 headline.** The model says LAX is "more congested" overall although departure delayed-15+ is tied (19.96% vs 19.98%); it says so in the same answer, so I counted it as a pass.
-- **Number check is lexical.** It proves each number exists somewhere in the tool output, not that it is attached to the right airport/metric. I read each answer against the tool output for the expected values.
-- The brief referenced `claude/decisions.md` and `FDE Exam 2.pdf`; neither exists in the repo, so I worked from the brief only.
+## Compact tool payloads
+The model receives `compactForModel(...)` output (`server/src/tools/compact.ts`); the UI still gets the full result. Tokens sent to the model (estimated as chars/4):
 
-## Re-run with compact tool payloads (Session H)
-The model now receives `compactForModel(...)` output (`server/src/tools/compact.ts`); the UI still gets the full result. Tool results sent to the model (tokens estimated as chars/4): rankAirports (16 airports) 7,400 -> 1,986; rankAirports (New England) 3,474 -> 1,328; getUnmetDemand 3,487 -> 1,708; compareAirports 1,787 -> 1,207; getAirportProfile 1,698 -> 1,235; getRouteMix 1,555 -> 777.
-Re-run of all four questions with a 10 s gap (instead of 70 s), no fallback model: **Q1 PASS, Q2 PASS, Q3 PASS, Q4 PASS**, with no ungrounded numbers, methodology issues, missing caveats or style issues.
+| Tool | Full result | To the model |
+|---|---|---|
+| rankAirports (16 airports) | 7,400 | 1,986 |
+| rankAirports (New England) | 3,474 | 1,328 |
+| getUnmetDemand | 3,487 | 1,708 |
+| compareAirports | 1,787 | 1,207 |
+| getAirportProfile | 1,698 | 1,235 |
+| getRouteMix | 1,555 | 777 |
